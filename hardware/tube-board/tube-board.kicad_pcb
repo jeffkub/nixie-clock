@@ -3,12 +3,12 @@
   (general
     (links 103)
     (no_connects 0)
-    (area 51.924999 91.924999 228.075001 118.075001)
+    (area 50 90 230.000001 120.000001)
     (thickness 1.6)
     (drawings 10)
     (tracks 540)
     (zones 0)
-    (modules 23)
+    (modules 22)
     (nets 100)
   )
 
@@ -298,29 +298,6 @@
     (add_net /HV7)
     (add_net /HV8)
     (add_net /HV9)
-  )
-
-  (module radio-clock:Symbol_HighVoltage_Type2_SilkscreenTop_VerySmall (layer F.Cu) (tedit 58E38888) (tstamp 58E389DB)
-    (at 202 113)
-    (descr "Symbol, High Voltage, Type 2, Copper Top, Very Small,")
-    (tags "Symbol, High Voltage, Type 2, Copper Top, Very Small,")
-    (fp_text reference REF** (at -0.127 -5.715) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value Symbol_HighVoltage_Type2_CopperTop_VerySmall (at -0.381 4.572) (layer F.Fab)
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_line (start -0.49784 2.19964) (end 0.70104 -0.89916) (layer F.SilkS) (width 0.381))
-    (fp_line (start 0.70104 -0.89916) (end 0.1016 -0.50038) (layer F.SilkS) (width 0.381))
-    (fp_line (start -0.89916 0.20066) (end 0.40132 -2.60096) (layer F.SilkS) (width 0.381))
-    (fp_line (start -0.49784 2.19964) (end 0.1016 1.50114) (layer F.SilkS) (width 0.381))
-    (fp_line (start -0.09906 -2.79908) (end -0.89916 0.20066) (layer F.SilkS) (width 0.381))
-    (fp_line (start -0.89916 0.20066) (end 0.29972 -0.59944) (layer F.SilkS) (width 0.381))
-    (fp_line (start 0.29972 -0.59944) (end -0.49784 2.19964) (layer F.SilkS) (width 0.381))
-    (fp_line (start -0.49784 2.19964) (end -0.59944 1.30048) (layer F.SilkS) (width 0.381))
-    (fp_line (start 0 -4.191) (end 4.699 2.794) (layer F.SilkS) (width 0.381))
-    (fp_line (start 4.699 2.794) (end -4.699 2.794) (layer F.SilkS) (width 0.381))
-    (fp_line (start -4.699 2.794) (end 0 -4.191) (layer F.SilkS) (width 0.381))
   )
 
   (module Capacitors_SMD:C_0603 (layer B.Cu) (tedit 58AA844E) (tstamp 58E1A53F)
@@ -1209,7 +1186,7 @@
   )
 
   (module Symbols:OSHW-Logo2_7.3x6mm_SilkScreen (layer F.Cu) (tedit 0) (tstamp 58E3877F)
-    (at 109 97)
+    (at 170 112)
     (descr "Open Source Hardware Symbol")
     (tags "Logo Symbol OSHW")
     (attr virtual)
@@ -1502,7 +1479,7 @@
   )
 
   (module Symbols:KiCad-Logo2_6mm_SilkScreen (layer F.Cu) (tedit 0) (tstamp 58E387AD)
-    (at 171 97)
+    (at 171 98)
     (descr "KiCad Logo")
     (tags "Logo KiCad")
     (attr virtual)
@@ -1986,7 +1963,7 @@
   )
 
   (module radio-clock:Symbol_HighVoltage_Type2_SilkscreenTop_VerySmall (layer F.Cu) (tedit 58E38888) (tstamp 58E38720)
-    (at 78 113)
+    (at 109 111)
     (descr "Symbol, High Voltage, Type 2, Copper Top, Very Small,")
     (tags "Symbol, High Voltage, Type 2, Copper Top, Very Small,")
     (fp_text reference REF** (at -0.127 -5.715) (layer F.SilkS) hide

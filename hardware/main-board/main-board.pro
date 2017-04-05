@@ -1,4 +1,4 @@
-update=3/31/2017 9:59:06 PM
+update=4/4/2017 11:38:15 PM
 version=1
 last_client=kicad
 [pcbnew]
@@ -121,3 +121,13 @@ LibName89=Xicor
 LibName90=zetex
 LibName91=Zilog
 LibName92=radio-clock
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
