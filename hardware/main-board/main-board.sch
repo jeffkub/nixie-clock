@@ -1632,13 +1632,13 @@ Text Label 4900 6950 0    60   ~ 0
 PB3
 Text Label 3800 6100 0    60   ~ 0
 PB4
-Text Label 10800 3050 0    60   ~ 0
+Text Label 10800 3250 0    60   ~ 0
 PB1
 Text Label 10800 3150 0    60   ~ 0
 PB2
-Text Label 10800 3250 0    60   ~ 0
+Text Label 10800 3050 0    60   ~ 0
 PB3
-Text Label 10800 3350 0    60   ~ 0
+Text Label 14050 2650 0    60   ~ 0
 PB4
 $Comp
 L TEST_1P TP4
@@ -1969,8 +1969,6 @@ Wire Wire Line
 Connection ~ 10150 2450
 Wire Wire Line
 	11550 2450 10150 2450
-Wire Wire Line
-	10750 3350 11550 3350
 Wire Wire Line
 	10750 3250 11550 3250
 Wire Wire Line
@@ -2813,4 +2811,6 @@ Wire Wire Line
 Connection ~ 10250 9450
 Wire Wire Line
 	14750 2950 13950 2950
+Wire Wire Line
+	14750 2650 13950 2650
 $EndSCHEMATC
