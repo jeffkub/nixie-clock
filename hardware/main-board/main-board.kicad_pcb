@@ -1725,6 +1725,11 @@
       (net 37 "Net-(F1-Pad2)"))
     (pad "" np_thru_hole circle (at 5 0 270) (size 1.6 1.6) (drill 1.6) (layers *.Cu *.Mask))
     (pad "" np_thru_hole circle (at 9.5 0 270) (size 1.8 1.8) (drill 1.8) (layers *.Cu *.Mask))
+    (model C:/Projects/nixie-clock/hardware/radio-clock.3dshapes/pj-002ah-smt.wrl
+      (at (xyz 0.292 0 0.2))
+      (scale (xyz 2.91338 2.91338 2.91338))
+      (rotate (xyz -90 0 90))
+    )
   )
 
   (module radio-clock:8-188275-0 locked (layer F.Cu) (tedit 58E4474F) (tstamp 58E97CBE)
@@ -1774,6 +1779,11 @@
       (net 6 HT))
     (pad 10 smd rect (at 5.715 2.25) (size 3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 1 GND))
+    (model ../../../../../../Projects/nixie-clock/hardware/radio-clock.3dshapes/c-8-188275-0-u-3d.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 0.3937 0.3937 0.3937))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (module radio-clock:8-188275-0 locked (layer F.Cu) (tedit 58E4474F) (tstamp 58E97CD6)
@@ -1823,6 +1833,11 @@
       (net 1 GND))
     (pad 10 smd rect (at 5.715 2.25) (size 3 1.5) (layers F.Cu F.Paste F.Mask)
       (net 42 "Net-(J3-Pad10)"))
+    (model ../../../../../../Projects/nixie-clock/hardware/radio-clock.3dshapes/c-8-188275-0-u-3d.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 0.3937 0.3937 0.3937))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (module radio-clock:10118192 (layer F.Cu) (tedit 58BAE647) (tstamp 58E97CE9)
@@ -3678,7 +3693,7 @@
       (net 1 GND))
     (model ${KISYS3DMOD}/TO_SOT_Packages_SMD.3dshapes/SOT-223.wrl
       (at (xyz 0 0 0))
-      (scale (xyz 0.4 0.4 0.4))
+      (scale (xyz 0.3937 0.3937 0.3937))
       (rotate (xyz 0 0 90))
     )
   )
@@ -4962,6 +4977,11 @@
       (net 4 +3V3))
     (pad 2 smd rect (at 0 4.125) (size 1.5 2.15) (layers F.Cu F.Paste F.Mask)
       (net 56 /BOOT0))
+    (model C:/Projects/nixie-clock/hardware/radio-clock.3dshapes/sda01h1s.wrl
+      (at (xyz -0.089 0 0.094))
+      (scale (xyz 0.3937 0.3937 0.3937))
+      (rotate (xyz -90 0 90))
+    )
   )
 
   (gr_text USB (at 177.5 69.5) (layer F.SilkS)
