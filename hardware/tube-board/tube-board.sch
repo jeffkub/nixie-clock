@@ -1,5 +1,4 @@
 EESchema Schematic File Version 2
-LIBS:tube-board-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -53,7 +52,8 @@ F 0 "U2" H 9450 7150 60  0000 C CNN
 F 1 "HV5522PG" H 10100 3750 60  0000 C CNN
 F 2 "Housings_QFP:LQFP-44_10x10mm_Pitch0.8mm" H 9850 5450 60  0001 C CNN
 F 3 "" H 9850 5450 60  0001 C CNN
-F 4 "DigiKey" H 9850 5450 60  0001 C CNN "Source"
+F 4 "Mouser" H 9850 5450 60  0001 C CNN "Source"
+F 5 "689-HV5522PG-G" H 9850 5450 60  0001 C CNN "Part"
 	1    9850 5450
 	1    0    0    -1  
 $EndComp
@@ -65,7 +65,8 @@ F 0 "U1" H 4250 7150 60  0000 C CNN
 F 1 "HV5522PG" H 4900 3750 60  0000 C CNN
 F 2 "Housings_QFP:LQFP-44_10x10mm_Pitch0.8mm" H 4650 5450 60  0001 C CNN
 F 3 "" H 4650 5450 60  0001 C CNN
-F 4 "DigiKey" H 4650 5450 60  0001 C CNN "Source"
+F 4 "Mouser" H 4650 5450 60  0001 C CNN "Source"
+F 5 "689-HV5522PG-G" H 4650 5450 60  0001 C CNN "Part"
 	1    4650 5450
 	1    0    0    -1  
 $EndComp
@@ -77,7 +78,7 @@ F 0 "AN1" H 1800 2150 60  0000 C CNN
 F 1 "IN-14" H 3050 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 2300 1950 60  0001 C CNN
 F 3 "" H 2300 1950 60  0001 C CNN
-F 4 "DigiKey" H 2300 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 2300 1950 60  0001 C CNN "Source"
 	1    2300 1950
 	1    0    0    -1  
 $EndComp
@@ -89,7 +90,7 @@ F 0 "AN2" H 3700 2150 60  0000 C CNN
 F 1 "IN-14" H 4950 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 4200 1950 60  0001 C CNN
 F 3 "" H 4200 1950 60  0001 C CNN
-F 4 "DigiKey" H 4200 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 4200 1950 60  0001 C CNN "Source"
 	1    4200 1950
 	1    0    0    -1  
 $EndComp
@@ -101,7 +102,7 @@ F 0 "AN3" H 7000 2150 60  0000 C CNN
 F 1 "IN-14" H 8250 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 7500 1950 60  0001 C CNN
 F 3 "" H 7500 1950 60  0001 C CNN
-F 4 "DigiKey" H 7500 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 7500 1950 60  0001 C CNN "Source"
 	1    7500 1950
 	1    0    0    -1  
 $EndComp
@@ -113,7 +114,7 @@ F 0 "AN4" H 8900 2150 60  0000 C CNN
 F 1 "IN-14" H 10150 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 9400 1950 60  0001 C CNN
 F 3 "" H 9400 1950 60  0001 C CNN
-F 4 "DigiKey" H 9400 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 9400 1950 60  0001 C CNN "Source"
 	1    9400 1950
 	1    0    0    -1  
 $EndComp
@@ -125,7 +126,7 @@ F 0 "AN5" H 12200 2150 60  0000 C CNN
 F 1 "IN-14" H 13450 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 12700 1950 60  0001 C CNN
 F 3 "" H 12700 1950 60  0001 C CNN
-F 4 "DigiKey" H 12700 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 12700 1950 60  0001 C CNN "Source"
 	1    12700 1950
 	1    0    0    -1  
 $EndComp
@@ -137,7 +138,7 @@ F 0 "AN6" H 14100 2150 60  0000 C CNN
 F 1 "IN-14" H 15350 1700 60  0000 C CNN
 F 2 "radio-clock:IN-14" H 14600 1950 60  0001 C CNN
 F 3 "" H 14600 1950 60  0001 C CNN
-F 4 "DigiKey" H 14600 1950 60  0001 C CNN "Source"
+F 4 "eBay" H 14600 1950 60  0001 C CNN "Source"
 	1    14600 1950
 	1    0    0    -1  
 $EndComp
@@ -701,6 +702,7 @@ F 1 "0.1u" H 2925 3900 50  0000 L CNN
 F 2 "Capacitors_SMD:C_0805" H 2938 3850 50  0001 C CNN
 F 3 "" H 2900 4000 50  0001 C CNN
 F 4 "DigiKey" H 2900 4000 60  0001 C CNN "Source"
+F 5 "311-1136-1-ND" H 2900 4000 60  0001 C CNN "Part"
 	1    2900 4000
 	1    0    0    -1  
 $EndComp
@@ -735,6 +737,7 @@ F 1 "0.1u" H 8025 3950 50  0000 L CNN
 F 2 "Capacitors_SMD:C_0805" H 8038 3900 50  0001 C CNN
 F 3 "" H 8000 4050 50  0001 C CNN
 F 4 "DigiKey" H 8000 4050 60  0001 C CNN "Source"
+F 5 "311-1136-1-ND" H 8000 4050 60  0001 C CNN "Part"
 	1    8000 4050
 	1    0    0    -1  
 $EndComp
