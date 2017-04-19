@@ -1,2 +1,4 @@
 OldVersions/
 lockfile.lck
+*.pdf
+*.tmp
