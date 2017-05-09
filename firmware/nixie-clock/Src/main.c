@@ -63,7 +63,7 @@ osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+osThreadId heartbeatTaskHandle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,7 +81,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void HeartbeatTask(void const * argument);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -92,7 +92,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  HAL_GPIO_WritePin(GPIOA, 0, GPIO_PIN_SET);
+
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -111,7 +111,10 @@ int main(void)
   MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -132,7 +135,8 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
+  osThreadDef(heartbeatTask, HeartbeatTask, osPriorityNormal, 0, 128);
+  heartbeatTaskHandle = osThreadCreate(osThread(heartbeatTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -306,9 +310,9 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0xFF;
+  htim2.Init.Period = 0xFFFF;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
   {
     Error_Handler();
@@ -330,6 +334,7 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
 
+  sConfigOC.Pulse = 0x1FF;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -422,7 +427,16 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HeartbeatTask(void const * argument)
+{
+	for(;;)
+	{
+		TIM2->CCR1 = 0xFFFF;
+		osDelay(1000);
+		TIM2->CCR1 = 0x0000;
+		osDelay(1000);
+	}
+}
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -438,17 +452,6 @@ void StartDefaultTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END 5 */ 
-}
-
-void HeartbeatTask(void const * argument)
-{
-	for(;;)
-	{
-		HAL_GPIO_WritePin(GPIOA, 0, GPIO_PIN_SET);
-		osDelay(1);
-		HAL_GPIO_WritePin(GPIOA, 0, GPIO_PIN_RESET);
-		osDelay(1);
-	}
 }
 
 /**
