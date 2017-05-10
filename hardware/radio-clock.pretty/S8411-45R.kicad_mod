@@ -1,4 +1,4 @@
-(module S8411-45R (layer F.Cu) (tedit 58E6EE2D)
+(module S8411-45R (layer F.Cu) (tedit 59128391)
   (fp_text reference REF** (at 0 0.5) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
@@ -9,5 +9,5 @@
   (pad 2 smd rect (at 0 -8.2) (size 2.3 4.5) (layers F.Cu F.Paste F.Mask))
   (pad 1 smd rect (at 0 8.2) (size 2.3 4.5) (layers F.Cu F.Paste F.Mask))
   (pad "" np_thru_hole circle (at 0 -3.725) (size 1 1) (drill 1) (layers *.Cu *.Mask))
-  (pad "" np_thru_hole circle (at 0 3.725) (size 1 1) (drill 1) (layers *.Cu *.Mask))
+  (pad "" np_thru_hole circle (at 0 3.725) (size 1.25 1.25) (drill 1.25) (layers *.Cu *.Mask))
 )
