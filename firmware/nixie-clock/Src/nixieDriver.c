@@ -1,6 +1,9 @@
 #include "nixieDriver.h"
 
+#include <stdbool.h>
+
 #include "FreeRTOS.h"
+#include "portmacro.h"
 #include "task.h"
 #include "semphr.h"
 
@@ -26,21 +29,39 @@ static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
 static SemaphoreHandle_t m_devMutex;
 static SemaphoreHandle_t m_doneSem;
 
-static inline void dispEnable(void);
-static inline void spiLatch(void);
+static void setDispEnable(bool state);
+static void setLatchEnable(bool state);
 static void setbit(void* addr, unsigned int cnt);
 static void spiTransmit(const void* data, size_t len);
 
-static inline void dispEnable(void)
+static void setDispEnable(bool state)
 {
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+    /* Output is inverted */
+    if(state)
+    {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+    }
+    
+    return;
 }
 
-static inline void spiLatch(void)
+static void setLatchEnable(bool state)
 {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-    vTaskDelay(2);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    /* Output is inverted */
+    if(state)
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+    }
+
+    return;
 }
 
 static void setbit(void* addr, unsigned int cnt)
@@ -71,7 +92,11 @@ static void spiTransmit(const void* data, size_t len)
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-    xSemaphoreGive(m_doneSem);
+    BaseType_t taskWoken;
+
+    xSemaphoreGiveFromISR(m_doneSem, &taskWoken);
+
+    portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
@@ -80,6 +105,8 @@ void nixieDriver_init(void)
 {
     m_devMutex = xSemaphoreCreateMutex();
     m_doneSem = xSemaphoreCreateBinary();
+
+    setDispEnable(true);
 
     return;
 }
@@ -92,8 +119,6 @@ void nixieDriver_set(int* vals)
     int onesDigit;
 
     xSemaphoreTake(m_devMutex, portMAX_DELAY);
-
-    dispEnable();
 
     for(index = 0; index < NUM_CNT; index++)
     {
@@ -109,9 +134,17 @@ void nixieDriver_set(int* vals)
         setbit(bitmask, m_nixieBitmap[index*2 + 1][onesDigit] - 1);
     }
 
+    setLatchEnable(false);
+
+    vTaskDelay(2);
+
     spiTransmit(bitmask, SHIFT_BYTES);
 
-    spiLatch();
+    vTaskDelay(2);
+
+    setLatchEnable(true);
+
+    vTaskDelay(2);
 
     xSemaphoreGive(m_devMutex);
 
