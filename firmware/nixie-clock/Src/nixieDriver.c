@@ -1,6 +1,7 @@
 #include "nixieDriver.h"
 
 #include <stdbool.h>
+#include <string.h>
 
 #include "FreeRTOS.h"
 #include "portmacro.h"
@@ -11,19 +12,20 @@
 #define DIGIT_CNT   10
 
 #define SHIFT_BYTES  8
+#define BIT_CNT      (SHIFT_BYTES * 8)
 
 extern SPI_HandleTypeDef hspi2;
 
 static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
 {
-    { 22, 23, 24, 25,  6,  7,  8,  9, 10, 21 },
-    { 17, 18, 19, 20, 11, 12, 13, 14, 15, 16 },
+    { 10,  9,  8,  7, 26, 25, 24, 23, 22, 11 },
+    { 15, 14, 13, 12, 21, 20, 19, 18, 17, 16 },
 
-    { 30, 31, 32,  1,  2,  3,  4,  5, 28, 29 },
-    { 36, 35, 34, 33, 60, 61, 62, 63, 64, 37 },
+    {  2,  1,  0, 31, 30, 29, 28, 27,  4,  3 },
+    { 60, 61, 62, 63, 36, 35, 34, 33, 32, 59 },
 
-    { 45, 46, 47, 48, 49, 50, 51, 52, 43, 44 },
-    { 40, 41, 42, 53, 54, 55, 56, 57, 38, 39 }
+    { 51, 50, 49, 48, 47, 46, 45, 44, 53, 52 },
+    { 56, 55, 54, 43, 42, 41, 40, 39, 58, 57 }
 };
 
 static SemaphoreHandle_t m_devMutex;
@@ -31,7 +33,7 @@ static SemaphoreHandle_t m_doneSem;
 
 static void setDispEnable(bool state);
 static void setLatchEnable(bool state);
-static void setbit(void* addr, unsigned int cnt);
+static void clrbit(void* addr, unsigned int cnt);
 static void spiTransmit(const void* data, size_t len);
 
 static void setDispEnable(bool state)
@@ -64,12 +66,12 @@ static void setLatchEnable(bool state)
     return;
 }
 
-static void setbit(void* addr, unsigned int cnt)
+static void clrbit(void* addr, unsigned int cnt)
 {
     uint8_t* byte = ((uint8_t*)addr) + (cnt / 8);
     unsigned int bit = cnt % 8;
 
-    *byte |= 1 << bit;
+    *byte &= ~(1 << bit);
 
     return;
 }
@@ -114,11 +116,13 @@ void nixieDriver_init(void)
 void nixieDriver_set(int* vals)
 {
     int index;
-    uint8_t bitmask[SHIFT_BYTES] = {0};
+    uint8_t bitmask[SHIFT_BYTES];
     int tensDigit;
     int onesDigit;
 
     xSemaphoreTake(m_devMutex, portMAX_DELAY);
+
+    memset(bitmask, 0xFF, sizeof(bitmask));
 
     for(index = 0; index < NUM_CNT; index++)
     {
@@ -130,8 +134,8 @@ void nixieDriver_set(int* vals)
             tensDigit = DIGIT_CNT-1;
         }
 
-        setbit(bitmask, m_nixieBitmap[index*2][tensDigit] - 1);
-        setbit(bitmask, m_nixieBitmap[index*2 + 1][onesDigit] - 1);
+        clrbit(bitmask, m_nixieBitmap[index*2][tensDigit]);
+        clrbit(bitmask, m_nixieBitmap[index*2 + 1][onesDigit]);
     }
 
     setLatchEnable(false);
