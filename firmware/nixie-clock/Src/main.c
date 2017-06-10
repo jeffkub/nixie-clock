@@ -92,7 +92,9 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+#if DEBUG
   initialise_monitor_handles();
+#endif /* DEBUG */
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -437,13 +439,9 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HeartbeatTask(void const * argument)
-{
-  int display[NUM_CNT] = {12, 34, 56};
-  
+{ 
 	for(;;)
 	{
-    nixieDriver_set(display);
-
 		TIM2->CCR1 = 0xFFFF;
 		osDelay(1000);
 		TIM2->CCR1 = 0x0000;
@@ -459,10 +457,26 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 5 */
+  int display[NUM_CNT] = {00, 00, 00};
+
+  nixieDriver_set(display);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(500);
+
+    for(int index = 0; index < 3; index++)
+    {
+      display[index] += 11;
+
+      if(display[index] >= 100)
+      {
+        display[index] = 0;
+      }
+    }
+    nixieDriver_set(display);
   }
   /* USER CODE END 5 */ 
 }
