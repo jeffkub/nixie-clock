@@ -8,6 +8,9 @@
 #include "task.h"
 #include "semphr.h"
 
+#include "stm32f3xx_hal.h"
+#include "stm32f3xx_hal_spi.h"
+
 #define TUBE_CNT     6
 #define DIGIT_CNT   10
 
@@ -28,8 +31,8 @@ static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
     { 56, 55, 54, 43, 42, 41, 40, 39, 58, 57 }
 };
 
-static SemaphoreHandle_t m_devMutex;
-static SemaphoreHandle_t m_doneSem;
+static SemaphoreHandle_t devMutex;
+static SemaphoreHandle_t doneSem;
 
 static void setDispEnable(bool state);
 static void setLatchEnable(bool state);
@@ -87,7 +90,7 @@ static void spiTransmit(const void* data, size_t len)
     }
 
     /* Wait for transmit to complete */
-    xSemaphoreTake(m_doneSem, portMAX_DELAY);
+    xSemaphoreTake(doneSem, portMAX_DELAY);
 
     return;
 }
@@ -96,7 +99,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
     BaseType_t taskWoken;
 
-    xSemaphoreGiveFromISR(m_doneSem, &taskWoken);
+    xSemaphoreGiveFromISR(doneSem, &taskWoken);
 
     portYIELD_FROM_ISR(taskWoken);
 
@@ -105,8 +108,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 
 void nixieDriver_init(void)
 {
-    m_devMutex = xSemaphoreCreateMutex();
-    m_doneSem = xSemaphoreCreateBinary();
+    devMutex = xSemaphoreCreateMutex();
+    doneSem = xSemaphoreCreateBinary();
 
     setDispEnable(true);
 
@@ -120,7 +123,7 @@ void nixieDriver_set(int* vals)
     int tensDigit;
     int onesDigit;
 
-    xSemaphoreTake(m_devMutex, portMAX_DELAY);
+    xSemaphoreTake(devMutex, portMAX_DELAY);
 
     memset(bitmask, 0xFF, sizeof(bitmask));
 
@@ -150,7 +153,7 @@ void nixieDriver_set(int* vals)
 
     vTaskDelay(2);
 
-    xSemaphoreGive(m_devMutex);
+    xSemaphoreGive(devMutex);
 
     return;
 }
