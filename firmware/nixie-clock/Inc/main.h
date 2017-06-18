@@ -51,6 +51,25 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define PB3_Pin GPIO_PIN_4
+#define PB3_GPIO_Port GPIOA
+#define PB2_Pin GPIO_PIN_5
+#define PB2_GPIO_Port GPIOA
+#define PB1_Pin GPIO_PIN_6
+#define PB1_GPIO_Port GPIOA
+#define GPS_RESET_Pin GPIO_PIN_2
+#define GPS_RESET_GPIO_Port GPIOB
+#define DISP_LE_Pin GPIO_PIN_14
+#define DISP_LE_GPIO_Port GPIOB
+#define DISP_BL_Pin GPIO_PIN_8
+#define DISP_BL_GPIO_Port GPIOA
+#define USB_VBUS_Pin GPIO_PIN_10
+#define USB_VBUS_GPIO_Port GPIOA
+#define PB4_Pin GPIO_PIN_6
+#define PB4_GPIO_Port GPIOB
+#define HV_EN_Pin GPIO_PIN_9
+#define HV_EN_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

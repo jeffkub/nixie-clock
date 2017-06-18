@@ -11,6 +11,8 @@
 #include "stm32f3xx_hal.h"
 #include "stm32f3xx_hal_spi.h"
 
+#include "main.h"
+
 #define TUBE_CNT     6
 #define DIGIT_CNT   10
 
@@ -45,11 +47,11 @@ static void hvEnable(bool state)
 {
     if(state)
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(HV_EN_GPIO_Port, HV_EN_Pin, GPIO_PIN_SET);
     }
     else
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(HV_EN_GPIO_Port, HV_EN_Pin, GPIO_PIN_RESET);
     }
 }
 
@@ -58,11 +60,11 @@ static void dispEnable(bool state)
     /* Output is inverted */
     if(state)
     {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(DISP_BL_GPIO_Port, DISP_BL_Pin, GPIO_PIN_RESET);
     }
     else
     {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(DISP_BL_GPIO_Port, DISP_BL_Pin, GPIO_PIN_SET);
     }
     
     return;
@@ -73,11 +75,11 @@ static void latchEnable(bool state)
     /* Output is inverted */
     if(state)
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(DISP_LE_GPIO_Port, DISP_LE_Pin, GPIO_PIN_RESET);
     }
     else
     {
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(DISP_LE_GPIO_Port, DISP_LE_Pin, GPIO_PIN_SET);
     }
 
     return;
