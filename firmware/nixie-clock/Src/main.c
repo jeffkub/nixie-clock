@@ -124,8 +124,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-
   TIM2->CCR2 = 0x1FF;
   TIM2->CCR3 = 0x1FF;
   TIM2->CCR4 = 0x1FF;
@@ -477,7 +475,6 @@ void StartDefaultTask(void const * argument)
   int display[NUM_CNT] = {00, 00, 00};
 
   nixieDriver_set(display);
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
 
   /* Infinite loop */
   for(;;)

@@ -34,12 +34,26 @@ static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
 static SemaphoreHandle_t devMutex;
 static SemaphoreHandle_t doneSem;
 
-static void setDispEnable(bool state);
-static void setLatchEnable(bool state);
+static void hvEnable(bool state);
+static void dispEnable(bool state);
+static void latchEnable(bool state);
+
 static void clrbit(void* addr, unsigned int cnt);
 static void spiTransmit(const void* data, size_t len);
 
-static void setDispEnable(bool state)
+static void hvEnable(bool state)
+{
+    if(state)
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+    }
+}
+
+static void dispEnable(bool state)
 {
     /* Output is inverted */
     if(state)
@@ -54,7 +68,7 @@ static void setDispEnable(bool state)
     return;
 }
 
-static void setLatchEnable(bool state)
+static void latchEnable(bool state)
 {
     /* Output is inverted */
     if(state)
@@ -111,7 +125,8 @@ void nixieDriver_init(void)
     devMutex = xSemaphoreCreateMutex();
     doneSem = xSemaphoreCreateBinary();
 
-    setDispEnable(true);
+    hvEnable(true);
+    dispEnable(false);
 
     return;
 }
@@ -141,7 +156,7 @@ void nixieDriver_set(int* vals)
         clrbit(bitmask, m_nixieBitmap[index*2 + 1][onesDigit]);
     }
 
-    setLatchEnable(false);
+    latchEnable(false);
 
     vTaskDelay(2);
 
@@ -149,9 +164,11 @@ void nixieDriver_set(int* vals)
 
     vTaskDelay(2);
 
-    setLatchEnable(true);
+    latchEnable(true);
 
     vTaskDelay(2);
+
+    dispEnable(true);
 
     xSemaphoreGive(devMutex);
 
