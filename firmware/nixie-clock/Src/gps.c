@@ -1,5 +1,6 @@
 #include "gps.h"
 
+#include <ctype.h>
 #include <stdbool.h>
 
 #include "FreeRTOS.h"
@@ -22,40 +23,77 @@ static bool errorFlag;
 static void gpsEnable(bool state);
 
 static ssize_t uart_read(char * data, size_t len);
+static ssize_t read_line(char * str, size_t len);
 
 static void gpsEnable(bool state)
 {
-	if(state)
-	{
-		HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_SET);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_RESET);
-	}
+    if(state)
+    {
+        HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_RESET);
+    }
 }
 
 static ssize_t uart_read(char * data, size_t len)
 {
-	ssize_t retval = -1;
+    ssize_t retval = -1;
 
-	errorFlag = false;
+    errorFlag = false;
 
-	/* Start RX */
-	if(HAL_UART_Receive_IT(&huart3, (uint8_t *) data, len) != HAL_OK)
-	{
-		return -1;
-	}
+    /* Start RX */
+    if(HAL_UART_Receive_IT(&huart3, (uint8_t *) data, len) != HAL_OK)
+    {
+        return -1;
+    }
 
-	/* Wait for RX to complete */
-	xSemaphoreTake(doneSem, portMAX_DELAY);
+    /* Wait for RX to complete */
+    xSemaphoreTake(doneSem, portMAX_DELAY);
 
-	if(errorFlag == false)
-	{
-		retval = len;
-	}
+    if(errorFlag == false)
+    {
+        retval = len;
+    }
 
-	return retval;
+    return retval;
+}
+
+static ssize_t read_line(char * str, size_t len)
+{
+    size_t read = 0;
+
+    while(true)
+    {
+        if(uart_read(&str[read], 1) < 0)
+        {
+            /* Read error */
+            continue;
+        }
+
+        if(read == 0 && isspace(str[read]) != 0)
+        {
+            /* Skip leading whitespace */
+            continue;
+        }
+        else if(str[read] == '\r' || str[read] == '\n')
+        {
+            /* Reached end of line.  Null terminate string and exit loop */
+            str[read] = '\0';
+            read++;
+            break;
+        }
+
+        read++;
+        if(read == len)
+        {
+            /* Overflow, drop line */
+            read = 0;
+        }
+    }
+
+    return read;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -91,17 +129,28 @@ void gps_init(void)
 
     gpsEnable(true);
 
-	return;
+    return;
 }
 
 void gps_read(void)
 {
-	char buf;
+    char line[81];
+    int hour;
+    int min;
+    int sec;
+    int subsec;
 
-	if(uart_read(&buf, 1) > 0)
-	{
-		printf("%c", buf);
-	}
+    if(read_line(line, sizeof(line)) <= 0)
+    {
+        return;
+    }
 
-	return;
+    if(sscanf(line, "$GPRMC,%02d%02d%02d.%03d", &hour, &min, &sec, &subsec) != 4)
+    {
+        return;
+    }
+
+    printf("%d:%d:%d\n", hour, min, sec);
+
+    return;
 }
