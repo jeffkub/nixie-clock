@@ -17,6 +17,8 @@ extern UART_HandleTypeDef huart3;
 static SemaphoreHandle_t devMutex;
 static SemaphoreHandle_t doneSem;
 
+static bool errorFlag;
+
 static void gpsEnable(bool state);
 
 static ssize_t uart_read(char * data, size_t len);
@@ -35,6 +37,10 @@ static void gpsEnable(bool state)
 
 static ssize_t uart_read(char * data, size_t len)
 {
+	ssize_t retval = -1;
+
+	errorFlag = false;
+
 	/* Start RX */
 	if(HAL_UART_Receive_IT(&huart3, (uint8_t *) data, len) != HAL_OK)
 	{
@@ -44,12 +50,32 @@ static ssize_t uart_read(char * data, size_t len)
 	/* Wait for RX to complete */
 	xSemaphoreTake(doneSem, portMAX_DELAY);
 
-	return len;
+	if(errorFlag == false)
+	{
+		retval = len;
+	}
+
+	return retval;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     BaseType_t taskWoken;
+
+    errorFlag = false;
+
+    xSemaphoreGiveFromISR(doneSem, &taskWoken);
+
+    portYIELD_FROM_ISR(taskWoken);
+
+    return;
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    BaseType_t taskWoken;
+
+    errorFlag = true;
 
     xSemaphoreGiveFromISR(doneSem, &taskWoken);
 
@@ -72,8 +98,10 @@ void gps_read(void)
 {
 	char buf;
 
-	uart_read(&buf, 1);
-	printf("%c", buf);
+	if(uart_read(&buf, 1) > 0)
+	{
+		printf("%c", buf);
+	}
 
 	return;
 }
