@@ -1,5 +1,10 @@
 #include "uart3.h"
 
+#include "FreeRTOS.h"
+#include "portmacro.h"
+#include "task.h"
+#include "semphr.h"
+
 #include "stm32f3xx.h"
 #include "stm32f3xx_hal_rcc.h"
 
@@ -7,10 +12,48 @@
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
 
+#define BUFFER_SIZE 2048
+
+static SemaphoreHandle_t devMutex;
+static SemaphoreHandle_t doneSem;
+
+static char rxBuf[BUFFER_SIZE];
+static size_t rxBufReadPtr = 0;
+static size_t rxBufWritePtr = 0;
+
+void USART3_IRQHandler(void)
+{
+    uint32_t isrflags;
+    uint32_t rxData;
+
+    /* Read interrupt flags */
+    isrflags = READ_REG(UART_INST->ISR);
+
+    /* RX interrupt */
+    if(isrflags & USART_ISR_RXNE)
+    {
+        rxData = READ_REG(UART_INST->RDR);
+
+        if((rxBufWritePtr - rxBufReadPtr) < BUFFER_SIZE)
+        {
+            rxBuf[rxBufWritePtr % BUFFER_SIZE] = rxData;
+            rxBufWritePtr++;
+        }
+    }
+
+    /* Acknowledge interrupts */
+    WRITE_REG(UART_INST->ICR, isrflags);
+
+    return;
+}
+
 void uart3_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
-    
+
+    devMutex = xSemaphoreCreateMutex();
+    doneSem = xSemaphoreCreateBinary();
+
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
   

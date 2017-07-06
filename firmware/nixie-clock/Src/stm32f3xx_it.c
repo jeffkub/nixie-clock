@@ -189,6 +189,7 @@ void SPI2_IRQHandler(void)
   /* USER CODE END SPI2_IRQn 1 */
 }
 
+#if 0
 /**
 * @brief This function handles USART3 global interrupt.
 */
@@ -202,6 +203,7 @@ void USART3_IRQHandler(void)
 
   /* USER CODE END USART3_IRQn 1 */
 }
+#endif
 
 /* USER CODE BEGIN 1 */
 

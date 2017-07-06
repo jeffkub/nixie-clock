@@ -47,6 +47,7 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
+#include "uart3.h"
 #include "gps.h"
 #include "nixieDriver.h"
 /* USER CODE END Includes */
@@ -75,7 +76,7 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_USART3_UART_Init(void);
+//static void MX_USART3_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -113,9 +114,10 @@ int main(void)
   MX_RTC_Init();
   MX_SPI2_Init();
   MX_TIM2_Init();
-  MX_USART3_UART_Init();
+  //MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
+  uart3_init();
   nixieDriver_init();
   gps_init();
 
@@ -371,6 +373,7 @@ static void MX_TIM2_Init(void)
 }
 
 /* USART3 init function */
+#if 0
 static void MX_USART3_UART_Init(void)
 {
 
@@ -390,6 +393,7 @@ static void MX_USART3_UART_Init(void)
   }
 
 }
+#endif
 
 /** Configure pins as 
         * Analog 
