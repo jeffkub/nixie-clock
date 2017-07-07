@@ -17,8 +17,8 @@
 static SemaphoreHandle_t devMutex;
 static SemaphoreHandle_t doneSem;
 
-static char rxBuf[BUFFER_SIZE];
-static size_t rxBufReadPtr = 0;
+static char   rxBuf[BUFFER_SIZE];
+static size_t rxBufReadPtr  = 0;
 static size_t rxBufWritePtr = 0;
 
 void USART3_IRQHandler(void)
@@ -57,7 +57,7 @@ void uart3_init(void)
     GPIO_InitTypeDef GPIO_InitStruct;
 
     devMutex = xSemaphoreCreateMutex();
-    doneSem = xSemaphoreCreateBinary();
+    doneSem  = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
@@ -104,16 +104,17 @@ void uart3_init(void)
 
 ssize_t uart3_read(void * buf, size_t nbyte)
 {
-    ssize_t read = 0;
+    ssize_t read;
 
     for(read = 0; read < nbyte; read++)
     {
+        /* Wait for character to read */
         while(rxBufReadPtr == rxBufWritePtr)
         {
             xSemaphoreTake(doneSem, portMAX_DELAY);
         }
 
-        ((char*)buf)[read] = rxBuf[rxBufReadPtr];
+        ((char*)buf)[read] = rxBuf[rxBufReadPtr % BUFFER_SIZE];
         rxBufReadPtr++;
     }
 
