@@ -23,8 +23,9 @@ static size_t rxBufWritePtr = 0;
 
 void USART3_IRQHandler(void)
 {
-    uint32_t isrflags;
-    uint32_t rxData;
+    BaseType_t taskWoken = pdFALSE;
+    uint32_t   isrflags;
+    uint32_t   rxData;
 
     /* Read interrupt flags */
     isrflags = READ_REG(UART_INST->ISR);
@@ -32,17 +33,21 @@ void USART3_IRQHandler(void)
     /* RX interrupt */
     if(isrflags & USART_ISR_RXNE)
     {
-        rxData = READ_REG(UART_INST->RDR);
+        rxData = (char) READ_REG(UART_INST->RDR);
 
         if((rxBufWritePtr - rxBufReadPtr) < BUFFER_SIZE)
         {
             rxBuf[rxBufWritePtr % BUFFER_SIZE] = rxData;
             rxBufWritePtr++;
         }
-    }
 
+        xSemaphoreGiveFromISR(doneSem, &taskWoken);
+    }
+    
     /* Acknowledge interrupts */
     WRITE_REG(UART_INST->ICR, isrflags);
+
+    portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
@@ -87,6 +92,10 @@ void uart3_init(void)
     /* Set the baud rate */
     UART_INST->BRR = (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(), 9600));
 
+    /* Enable RX interrupt */
+    CLEAR_BIT(UART_INST->CR1, USART_CR1_TXEIE);
+    SET_BIT(UART_INST->CR1, USART_CR1_RXNEIE);
+
     /* Enable the UART */
     SET_BIT(UART_INST->CR1, USART_CR1_UE);
 
@@ -95,5 +104,18 @@ void uart3_init(void)
 
 ssize_t uart3_read(void * buf, size_t nbyte)
 {
-    return 0;
+    ssize_t read = 0;
+
+    for(read = 0; read < nbyte; read++)
+    {
+        while(rxBufReadPtr == rxBufWritePtr)
+        {
+            xSemaphoreTake(doneSem, portMAX_DELAY);
+        }
+
+        ((char*)buf)[read] = rxBuf[rxBufReadPtr];
+        rxBufReadPtr++;
+    }
+
+    return read;
 }
