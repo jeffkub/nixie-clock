@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-b929148b9f0b0dd85adfe0e8e454bf46 CMakeFiles/nixie-clock.bin
-d480f649dd95a24e1373e033552b3ed4 CMakeFiles/nixie-clock.hex

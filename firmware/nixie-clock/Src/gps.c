@@ -1,6 +1,5 @@
 #include "gps.h"
 
-#include <ctype.h>
 #include <stdbool.h>
 
 #include "FreeRTOS.h"

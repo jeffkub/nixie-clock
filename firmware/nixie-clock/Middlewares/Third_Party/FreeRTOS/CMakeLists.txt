@@ -1,32 +1,19 @@
-PROJECT(freertos)
-
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-
-#FIND_PACKAGE(CMSIS REQUIRED)
-
 SET(FREERTOS_INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/include
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F
+	PARENT_SCOPE
 )
 
-SET(FREERTOS_INCLUDE_DIRS ${FREERTOS_INCLUDE_DIRS} PARENT_SCOPE)
-
-INCLUDE_DIRECTORIES(
-#	${CMSIS_INCLUDE_DIRS}
-	${FREERTOS_INCLUDE_DIRS}
+SET(FREERTOS_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/croutine.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/event_groups.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/list.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/queue.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/tasks.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/timers.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS/cmsis_os.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/MemMang/heap_4.c
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F/port.c
+	PARENT_SCOPE
 )
-
-SET(PROJECT_SOURCES
-	Source/croutine.c
-	Source/event_groups.c
-	Source/list.c
-	Source/queue.c
-	Source/tasks.c
-	Source/timers.c
-	Source/CMSIS_RTOS/cmsis_os.c
-	Source/portable/MemMang/heap_4.c
-	Source/portable/GCC/ARM_CM4F/port.c
-)
-
-ADD_LIBRARY(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})

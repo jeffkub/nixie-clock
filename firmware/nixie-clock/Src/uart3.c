@@ -1,5 +1,7 @@
 #include "uart3.h"
 
+#include <ctype.h>
+
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "task.h"
@@ -137,7 +139,7 @@ char * uart3_gets(char * str, size_t maxlen)
             return NULL;
         }
 
-        if(read == 0 && isspace(str[read]) != 0)
+        if(read == 0 && isspace((int)str[read]) != 0)
         {
             /* Skip leading whitespace */
             continue;
