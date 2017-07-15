@@ -1,0 +1,32 @@
+PROJECT(freertos)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+#FIND_PACKAGE(CMSIS REQUIRED)
+
+SET(FREERTOS_INCLUDE_DIRS
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/include
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS
+	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F
+)
+
+SET(FREERTOS_INCLUDE_DIRS ${FREERTOS_INCLUDE_DIRS} PARENT_SCOPE)
+
+INCLUDE_DIRECTORIES(
+#	${CMSIS_INCLUDE_DIRS}
+	${FREERTOS_INCLUDE_DIRS}
+)
+
+SET(PROJECT_SOURCES
+	Source/croutine.c
+	Source/event_groups.c
+	Source/list.c
+	Source/queue.c
+	Source/tasks.c
+	Source/timers.c
+	Source/CMSIS_RTOS/cmsis_os.c
+	Source/portable/MemMang/heap_4.c
+	Source/portable/GCC/ARM_CM4F/port.c
+)
+
+ADD_LIBRARY(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})

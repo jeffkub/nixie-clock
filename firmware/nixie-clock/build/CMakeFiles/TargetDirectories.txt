@@ -1,0 +1,8 @@
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/CMakeFiles/edit_cache.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/CMakeFiles/nixie-clock.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/CMakeFiles/nixie-clock.hex.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/CMakeFiles/nixie-clock.bin.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/CMakeFiles/rebuild_cache.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/Middlewares/Third_Party/FreeRTOS/CMakeFiles/rebuild_cache.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/Middlewares/Third_Party/FreeRTOS/CMakeFiles/edit_cache.dir
+/home/jeffkub/nixie-clock/firmware/nixie-clock/build/Middlewares/Third_Party/FreeRTOS/CMakeFiles/freertos.dir

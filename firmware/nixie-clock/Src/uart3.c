@@ -5,8 +5,7 @@
 #include "task.h"
 #include "semphr.h"
 
-#include "stm32f3xx.h"
-#include "stm32f3xx_hal_rcc.h"
+#include "stm32f3xx_hal.h"
 
 #define UART_INST USART3
 

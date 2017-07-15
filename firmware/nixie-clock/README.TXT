@@ -1,0 +1,1 @@
+cmake -DSTM32_CHIP=STM32F302C8 -DCMAKE_TOOLCHAIN_FILE=../../cmake/gcc_stm32.cmake -DSTM32Cube_DIR=/opt/STM32Cube_FW_F3_V1.9.0/ ..
