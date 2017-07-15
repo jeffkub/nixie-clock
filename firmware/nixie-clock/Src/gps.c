@@ -15,8 +15,6 @@
 
 static void gpsEnable(bool state);
 
-static ssize_t read_line(char * str, size_t len);
-
 static void gpsEnable(bool state)
 {
     if(state)
@@ -27,42 +25,6 @@ static void gpsEnable(bool state)
     {
         HAL_GPIO_WritePin(GPS_RESET_GPIO_Port, GPS_RESET_Pin, GPIO_PIN_RESET);
     }
-}
-
-static ssize_t read_line(char * str, size_t len)
-{
-    size_t read = 0;
-
-    while(true)
-    {
-        if(uart3_read(&str[read], 1) < 0)
-        {
-            /* Read error */
-            continue;
-        }
-
-        if(read == 0 && isspace(str[read]) != 0)
-        {
-            /* Skip leading whitespace */
-            continue;
-        }
-        else if(str[read] == '\r' || str[read] == '\n')
-        {
-            /* Reached end of line.  Null terminate string and exit loop */
-            str[read] = '\0';
-            read++;
-            break;
-        }
-
-        read++;
-        if(read == len)
-        {
-            /* Overflow, drop line */
-            read = 0;
-        }
-    }
-
-    return read;
 }
 
 void gps_init(void)
@@ -82,7 +44,7 @@ void gps_read(void)
     //int sec;
     //int subsec;
 
-    if(read_line(line, sizeof(line)) <= 0)
+    if(uart3_gets(line, sizeof(line)) == NULL)
     {
         return;
     }

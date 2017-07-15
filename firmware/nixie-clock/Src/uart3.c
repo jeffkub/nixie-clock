@@ -120,3 +120,41 @@ ssize_t uart3_read(void * buf, size_t nbyte)
 
     return read;
 }
+
+char * uart3_gets(char * str, size_t maxlen)
+{
+    size_t read = 0;
+
+    if(str == NULL || maxlen == 0)
+    {
+        return NULL;
+    }
+
+    while(read < (maxlen - 1)) /* -1 for NULL char */
+    {
+        if(uart3_read(&str[read], 1) < 0)
+        {
+            /* Read error */
+            return NULL;
+        }
+
+        if(read == 0 && isspace(str[read]) != 0)
+        {
+            /* Skip leading whitespace */
+            continue;
+        }
+        else if(str[read] == '\r' || str[read] == '\n')
+        {
+            /* Reached end of line */
+            read++;
+            break;
+        }
+
+        read++;
+    }
+
+    /* Null terminate the string */
+    str[read] = '\0';
+
+    return str;
+}
