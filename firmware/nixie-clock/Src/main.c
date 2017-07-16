@@ -473,7 +473,7 @@ static void GpsTask(void const * argument)
 void StartDefaultTask(void const * argument)
 {
   /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
+//  MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 5 */
   int display[NUM_CNT] = {00, 00, 00};
