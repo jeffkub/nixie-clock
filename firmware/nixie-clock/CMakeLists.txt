@@ -23,7 +23,6 @@ SET(PROJECT_SOURCES
     Src/nixieDriver.c
     Src/stm32f3xx_hal_msp.c
     Src/stm32f3xx_it.c
-#    Src/system_stm32f3xx.c
     Src/uart3.c
     Src/usb_device.c
     Src/usbd_cdc_if.c
