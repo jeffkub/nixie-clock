@@ -14,7 +14,8 @@
 static osThreadId gpsTaskHandle;
 
 static void gpsEnable(bool state);
-static void handleRMC(const char * payload);
+static void handleRMC(char ** dataItems, size_t dataItemsCount);
+static ssize_t tokenize(char * str, char ** tokvec, size_t tokvecLen);
 static void gpsTask(void const * argument);
 
 static void gpsEnable(bool state)
@@ -31,9 +32,9 @@ static void gpsEnable(bool state)
 
 struct tm gpsTime;
 
-static void handleRMC(const char * payload)
+static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    if(sscanf(payload, "%02d%02d%02d", &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
+    if(sscanf(dataItems[1], "%02d%02d%02d", &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
     {
         return;
     }
@@ -41,39 +42,54 @@ static void handleRMC(const char * payload)
     return;
 }
 
+static ssize_t tokenize(char * str, char ** tokvec, size_t tokvecLen)
+{
+    size_t count = 0;
+    char * saveptr;
+
+    tokvec[0] = strtok_r(str, ",", &saveptr);
+
+    while(tokvec[count] != NULL)
+    {
+        count++;
+        if(count == tokvecLen)
+        {
+            /* Ran out of space in tokvec */
+            return -1;
+        }
+
+        tokvec[count] = strtok_r(NULL, ",", &saveptr);
+    }
+
+    return count;
+}
+
 static void gpsTask(void const * argument)
 {
-    char   msg[128];
-    char * saveptr;
-    char * msgId;
-    char * payload;
+    char    sentence[128];
+    char *  dataItems[32];
+    ssize_t dataItemsCount;
 
     for(;;)
     {
-        /* Read a message from the GPS module */
-        if(uart3_gets(msg, sizeof(msg)) == NULL)
+        /* Read a sentence from the GPS module */
+        if(uart3_gets(sentence, sizeof(sentence)) == NULL)
         {
             return;
         }
 
-        /* Tokenize the message */
-        msgId = strtok_r(msg, ",", &saveptr);
-        if(msgId == NULL)
+        /* Split the sentence */
+        dataItemsCount = tokenize(sentence, dataItems, sizeof(dataItems));
+        if(dataItemsCount < 1)
         {
             continue;
         }
 
-        payload = strtok_r(NULL, "\r\n", &saveptr);
-        if(payload == NULL)
-        {
-            continue;
-        }
-
-        /* Determine message type */
-        if(strcmp(msgId, "$GPRMC") == 0)
+        /* Determine sentence type */
+        if(strcmp(dataItems[0], "$GPRMC") == 0)
         {
             /* Recommended Minimum Navigation Information */
-            handleRMC(payload);
+            handleRMC(dataItems, dataItemsCount);
         }
     }
 
