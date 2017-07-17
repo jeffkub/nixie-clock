@@ -1,18 +1,21 @@
 #include "gps.h"
 
 #include <stdbool.h>
+#include <string.h>
+#include <time.h>
 
-#include "FreeRTOS.h"
-#include "portmacro.h"
-#include "task.h"
-#include "semphr.h"
+#include "cmsis_os.h"
 
 #include "stm32f3xx_hal.h"
 
 #include "main.h"
 #include "uart3.h"
 
+static osThreadId gpsTaskHandle;
+
 static void gpsEnable(bool state);
+static void handleRMC(const char * payload);
+static void gpsTask(void const * argument);
 
 static void gpsEnable(bool state)
 {
@@ -26,34 +29,63 @@ static void gpsEnable(bool state)
     }
 }
 
-void gps_init(void)
+struct tm gpsTime;
+
+static void handleRMC(const char * payload)
 {
-    gpsEnable(true);
-
-    return;
-}
-
-char line[128];
-
-void gps_read(void)
-{
-    //char line[81];
-    //int hour;
-    //int min;
-    //int sec;
-    //int subsec;
-
-    if(uart3_gets(line, sizeof(line)) == NULL)
+    if(sscanf(payload, "%02d%02d%02d", &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
     {
         return;
     }
 
-    //if(sscanf(line, "$GPRMC,%02d%02d%02d.%03d", &hour, &min, &sec, &subsec) != 4)
-    //{
-    //    return;
-    //}
+    return;
+}
 
-    //printf("%d:%d:%d\n", hour, min, sec);
+static void gpsTask(void const * argument)
+{
+    char   msg[128];
+    char * saveptr;
+    char * msgId;
+    char * payload;
+
+    for(;;)
+    {
+        /* Read a message from the GPS module */
+        if(uart3_gets(msg, sizeof(msg)) == NULL)
+        {
+            return;
+        }
+
+        /* Tokenize the message */
+        msgId = strtok_r(msg, ",", &saveptr);
+        if(msgId == NULL)
+        {
+            continue;
+        }
+
+        payload = strtok_r(NULL, "\r\n", &saveptr);
+        if(payload == NULL)
+        {
+            continue;
+        }
+
+        /* Determine message type */
+        if(strcmp(msgId, "$GPRMC") == 0)
+        {
+            /* Recommended Minimum Navigation Information */
+            handleRMC(payload);
+        }
+    }
+
+    return;
+}
+
+void gps_init(void)
+{
+    osThreadDef(gpsTaskDef, gpsTask, osPriorityNormal, 0, 512);
+    gpsTaskHandle = osThreadCreate(osThread(gpsTaskDef), NULL);
+
+    gpsEnable(true);
 
     return;
 }

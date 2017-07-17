@@ -66,7 +66,6 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 osThreadId heartbeatTaskHandle;
-osThreadId gpsTaskHandle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,7 +84,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 static void HeartbeatTask(void const * argument);
-static void GpsTask(void const * argument);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -153,9 +151,6 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   osThreadDef(heartbeatTask, HeartbeatTask, osPriorityNormal, 0, 128);
   heartbeatTaskHandle = osThreadCreate(osThread(heartbeatTask), NULL);
-
-  osThreadDef(gpsTask, GpsTask, osPriorityNormal, 0, 128);
-  gpsTaskHandle = osThreadCreate(osThread(gpsTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -457,15 +452,6 @@ static void HeartbeatTask(void const * argument)
 		TIM2->CCR1 = 0x0000;
 		osDelay(1000);
 	}
-}
-
-static void GpsTask(void const * argument)
-{
-  printf("GpsTask\n");
-  for(;;)
-  {
-    gps_read();
-  }
 }
 /* USER CODE END 4 */
 
