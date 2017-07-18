@@ -55,13 +55,13 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-RTC_HandleTypeDef hrtc;
+//RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
 
-UART_HandleTypeDef huart3;
+//UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 
@@ -74,7 +74,7 @@ osThreadId heartbeatTaskHandle;
 void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
-static void MX_RTC_Init(void);
+//static void MX_RTC_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 //static void MX_USART3_UART_Init(void);
