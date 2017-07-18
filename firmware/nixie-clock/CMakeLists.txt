@@ -21,6 +21,7 @@ SET(PROJECT_SOURCES
     Src/gps.c
     Src/main.c
     Src/nixieDriver.c
+    Src/rtc.c
     Src/stm32f3xx_hal_msp.c
     Src/stm32f3xx_it.c
     Src/uart3.c

@@ -4,7 +4,6 @@
 
 #include "FreeRTOS.h"
 #include "portmacro.h"
-#include "task.h"
 #include "semphr.h"
 
 #include "stm32f3xx_hal.h"
@@ -13,7 +12,7 @@
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 256
 
 static SemaphoreHandle_t devMutex;
 static SemaphoreHandle_t doneSem;

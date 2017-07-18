@@ -48,6 +48,8 @@
 
 /* USER CODE BEGIN Includes */
 #include "uart3.h"
+#include "rtc.h"
+
 #include "gps.h"
 #include "nixieDriver.h"
 /* USER CODE END Includes */
@@ -109,13 +111,15 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RTC_Init();
+  //MX_RTC_Init();
   MX_SPI2_Init();
   MX_TIM2_Init();
   //MX_USART3_UART_Init();
 
   /* USER CODE BEGIN 2 */
   uart3_init();
+  rtc_init();
+
   nixieDriver_init();
   gps_init();
 
@@ -234,6 +238,7 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
+#if 0
 /* RTC init function */
 static void MX_RTC_Init(void)
 {
@@ -288,6 +293,7 @@ static void MX_RTC_Init(void)
   }
 
 }
+#endif
 
 /* SPI2 init function */
 static void MX_SPI2_Init(void)
