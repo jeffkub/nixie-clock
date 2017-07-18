@@ -11,11 +11,30 @@
 #include "main.h"
 #include "uart3.h"
 
+typedef enum
+{
+    GPRMC_MessageID = 0,
+    GPRMC_UTCTime,
+    GPRMC_Status,
+    GPRMC_Latitude,
+    GPRMC_NSIndicator,
+    GPRMC_Longitude,
+    GPRMC_EWIndicator,
+    GPRMC_SpeedOverGround,
+    GPRMC_CourseOverGround,
+    GPRMC_Date,
+    GPRMC_MagneticVariation,
+    GPRMC_Mode,
+    GPRMC_Checksum,
+
+    GPRMC_Count
+} GPRMC_Fields;
+
 static osThreadId gpsTaskHandle;
 
 static void gpsEnable(bool state);
 static void handleRMC(char ** dataItems, size_t dataItemsCount);
-static ssize_t tokenize(char * str, char ** tokvec, size_t tokvecLen);
+static ssize_t splitSentence(char * str, char ** tokvec, size_t tokvecLen);
 static void gpsTask(void const * argument);
 
 static void gpsEnable(bool state)
@@ -34,7 +53,19 @@ struct tm gpsTime;
 
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    if(sscanf(dataItems[1], "%02d%02d%02d", &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
+    if(dataItemsCount < GPRMC_Count)
+    {
+        return;
+    }
+
+    if(sscanf(dataItems[GPRMC_UTCTime], "%02d%02d%02d",
+        &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
+    {
+        return;
+    }
+
+    if(sscanf(dataItems[GPRMC_Date], "%02d%02d%02d",
+        &gpsTime.tm_mday, &gpsTime.tm_mon, &gpsTime.tm_year) != 3)
     {
         return;
     }
@@ -42,12 +73,12 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
     return;
 }
 
-static ssize_t tokenize(char * str, char ** tokvec, size_t tokvecLen)
+static ssize_t splitSentence(char * str, char ** tokvec, size_t tokvecLen)
 {
+    static const char* const delim = ",*";
     size_t count = 0;
-    char * saveptr;
 
-    tokvec[0] = strtok_r(str, ",", &saveptr);
+    tokvec[count] = strsep(&str, delim);
 
     while(tokvec[count] != NULL)
     {
@@ -58,7 +89,7 @@ static ssize_t tokenize(char * str, char ** tokvec, size_t tokvecLen)
             return -1;
         }
 
-        tokvec[count] = strtok_r(NULL, ",", &saveptr);
+        tokvec[count] = strsep(&str, delim);
     }
 
     return count;
@@ -79,7 +110,7 @@ static void gpsTask(void const * argument)
         }
 
         /* Split the sentence */
-        dataItemsCount = tokenize(sentence, dataItems, sizeof(dataItems));
+        dataItemsCount = splitSentence(sentence, dataItems, sizeof(dataItems));
         if(dataItemsCount < 1)
         {
             continue;
