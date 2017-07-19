@@ -12,11 +12,13 @@ void RTC_WKUP_IRQHandler(void)
 {
     BaseType_t taskWoken = pdFALSE;
 
+    /* Clear interrupt flag */
     CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
+    __HAL_RTC_WAKEUPTIMER_EXTI_CLEAR_FLAG();
 
-    //xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+    xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
 
-    //portYIELD_FROM_ISR(taskWoken);
+    portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
