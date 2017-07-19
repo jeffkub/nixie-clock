@@ -12,9 +12,11 @@ void RTC_WKUP_IRQHandler(void)
 {
     BaseType_t taskWoken = pdFALSE;
 
-    xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+    CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
 
-    portYIELD_FROM_ISR(taskWoken);
+    //xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+
+    //portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
@@ -59,11 +61,22 @@ void rtc_init(void)
     CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
     while(!READ_BIT(RTC->ISR, RTC_ISR_WUTWF));
 
+    /* Clear wakeup flag */
+    CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
+
     /* Program value into the wakeup timer */
     WRITE_REG(RTC->WUTR, 0);
 
     /* Set the wakeup timer clock source */
     MODIFY_REG(RTC->CR, RTC_CR_WUCKSEL, 0x4 << RTC_CR_WUCKSEL_Pos);
+
+    /* RTC WakeUpTimer Interrupt Configuration: EXTI configuration */
+    __HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_IT();
+
+    __HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_RISING_EDGE();
+
+    /* Enable wakeup timer interrupt */
+    SET_BIT(RTC->CR, RTC_CR_WUTIE);
 
     /* Enable the wakeup timer */
     SET_BIT(RTC->CR, RTC_CR_WUTE);
