@@ -8,15 +8,29 @@
 
 static SemaphoreHandle_t wakeupSem;
 
+static uint8_t bcdToByte(uint8_t val);
+
+static uint8_t bcdToByte(uint8_t val)
+{
+    uint32_t tmp = 0;
+
+    tmp = ((uint8_t)(val & (uint8_t)0xF0U) >> (uint8_t)0x4U) * 10U;
+    
+    return (tmp + (val & (uint8_t)0x0FU));
+}
+
 void RTC_WKUP_IRQHandler(void)
 {
     BaseType_t taskWoken = pdFALSE;
 
-    /* Clear interrupt flag */
-    CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
-    __HAL_RTC_WAKEUPTIMER_EXTI_CLEAR_FLAG();
+    if(READ_BIT(RTC->ISR, RTC_ISR_WUTF))
+    {
+        /* Clear interrupt flag */
+        CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
+        WRITE_REG(EXTI->PR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
 
-    xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+        xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+    }
 
     portYIELD_FROM_ISR(taskWoken);
 
@@ -72,10 +86,9 @@ void rtc_init(void)
     /* Set the wakeup timer clock source */
     MODIFY_REG(RTC->CR, RTC_CR_WUCKSEL, 0x4 << RTC_CR_WUCKSEL_Pos);
 
-    /* RTC WakeUpTimer Interrupt Configuration: EXTI configuration */
-    __HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_IT();
-
-    __HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_RISING_EDGE();
+    /* EXTI configuration for rising edge */
+    SET_BIT(EXTI->IMR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
+    SET_BIT(EXTI->RTSR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
 
     /* Enable wakeup timer interrupt */
     SET_BIT(RTC->CR, RTC_CR_WUTIE);
@@ -94,4 +107,29 @@ void rtc_wait(void)
     xSemaphoreTake(wakeupSem, portMAX_DELAY);
 
     return;
+}
+
+time_t rtc_time(void)
+{
+    struct tm time;
+    uint32_t  tr;
+    uint32_t  dr;
+
+    /* Read time and date registers */
+    while(!READ_BIT(RTC->ISR, RTC_ISR_RSF));
+    tr = READ_REG(RTC->TR);
+    dr = READ_REG(RTC->DR);
+    CLEAR_BIT(RTC->ISR, RTC_ISR_RSF);
+
+    /* Process registers */
+    time.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
+    time.tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
+    time.tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
+
+    time.tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
+    time.tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
+    time.tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
+
+    /* TODO: Verify no timezone offset */
+    return mktime(&time);
 }
