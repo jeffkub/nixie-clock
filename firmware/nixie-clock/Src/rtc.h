@@ -6,6 +6,8 @@
 void rtc_init(void);
 
 void rtc_wait(void);
-time_t rtc_time(void);
+
+time_t rtc_getTime(void);
+int    rtc_setTime(time_t time);
 
 #endif /* __RTC_H */

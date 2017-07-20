@@ -1,5 +1,7 @@
 #include "rtc.h"
 
+#include <string.h>
+
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "semphr.h"
@@ -8,15 +10,19 @@
 
 static SemaphoreHandle_t wakeupSem;
 
-static uint8_t bcdToByte(uint8_t val);
+static uint32_t bcdToByte(uint32_t val);
+static uint32_t byteToBcd(uint32_t val);
 
-static uint8_t bcdToByte(uint8_t val)
+static uint32_t bcdToByte(uint32_t val)
 {
-    uint32_t tmp = 0;
+    return (((val & 0xF0) >> 4) * 10) + (val & 0x0F);
+}
 
-    tmp = ((uint8_t)(val & (uint8_t)0xF0U) >> (uint8_t)0x4U) * 10U;
-    
-    return (tmp + (val & (uint8_t)0x0FU));
+static uint32_t byteToBcd(uint32_t val)
+{
+    val &= 0xFF;
+
+    return ((val / 10) << 4) | (val % 10);
 }
 
 void RTC_WKUP_IRQHandler(void)
@@ -109,27 +115,59 @@ void rtc_wait(void)
     return;
 }
 
-time_t rtc_time(void)
+time_t rtc_getTime(void)
 {
-    struct tm time;
+    struct tm timeStruct;
     uint32_t  tr;
     uint32_t  dr;
 
-    /* Read time and date registers */
+    /* Read timeStruct and date registers */
     while(!READ_BIT(RTC->ISR, RTC_ISR_RSF));
     tr = READ_REG(RTC->TR);
     dr = READ_REG(RTC->DR);
     CLEAR_BIT(RTC->ISR, RTC_ISR_RSF);
 
+    memset(&timeStruct, 0, sizeof(timeStruct));
+
     /* Process registers */
-    time.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
-    time.tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
-    time.tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
+    timeStruct.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
+    timeStruct.tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
+    timeStruct.tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
 
-    time.tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
-    time.tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
-    time.tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
+    timeStruct.tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
+    timeStruct.tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
+    timeStruct.tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
 
-    /* TODO: Verify no timezone offset */
-    return mktime(&time);
+    return mktime(&timeStruct);
+}
+
+int rtc_setTime(time_t time)
+{
+    struct tm timeStruct;
+    uint32_t  tr = 0;
+    uint32_t  dr = 0;
+
+    localtime_r(&time, &timeStruct);
+
+    tr |= byteToBcd(timeStruct.tm_sec       ) << RTC_TR_SU_Pos;
+    tr |= byteToBcd(timeStruct.tm_min       ) << RTC_TR_MNU_Pos;
+    tr |= byteToBcd(timeStruct.tm_hour      ) << RTC_TR_HU_Pos;
+
+    dr |= byteToBcd(timeStruct.tm_mday      ) << RTC_DR_DU_Pos;
+    dr |= byteToBcd(timeStruct.tm_mon  + 1  ) << RTC_DR_MU_Pos;
+    dr |= byteToBcd(timeStruct.tm_wday + 1  ) << RTC_DR_WDU_Pos;
+    dr |= byteToBcd(timeStruct.tm_year - 100) << RTC_DR_YU_Pos;
+
+    /* Enter initialization mode */
+    SET_BIT(RTC->ISR, RTC_ISR_INIT);
+    while(!READ_BIT(RTC->ISR, RTC_ISR_INITF));
+
+    /* Load default date and time regs */
+    WRITE_REG(RTC->TR, tr);
+    WRITE_REG(RTC->DR, dr);
+
+    /* Exit initialization mode */
+    CLEAR_BIT(RTC->ISR, RTC_ISR_INIT);
+
+    return 0;
 }
