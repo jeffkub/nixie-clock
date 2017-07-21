@@ -464,30 +464,26 @@ static void HeartbeatTask(void const * argument)
 /* StartDefaultTask function */
 void StartDefaultTask(void const * argument)
 {
+  int    display[NUM_CNT];
   time_t time;
   struct tm timeStruct;
 
   /* init code for USB_DEVICE */
 //  MX_USB_DEVICE_Init();
 
-  /* USER CODE BEGIN 5 */
-  int display[NUM_CNT] = {00, 00, 00};
-
-  nixieDriver_set(display);
-
   /* Infinite loop */
   for(;;)
   {
-    rtc_wait();
-
     time = rtc_getTime();
+    
     localtime_r(&time, &timeStruct);
-
     display[0] = timeStruct.tm_hour;
     display[1] = timeStruct.tm_min;
     display[2] = timeStruct.tm_sec;
 
     nixieDriver_set(display);
+
+    rtc_wait();
   }
   /* USER CODE END 5 */ 
 }
