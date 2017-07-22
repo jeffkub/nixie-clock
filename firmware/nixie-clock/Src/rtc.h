@@ -10,4 +10,6 @@ void rtc_wait(void);
 time_t rtc_getTime(void);
 int    rtc_setTime(time_t time);
 
+time_t rtc_getTimestamp(void);
+
 #endif /* __RTC_H */

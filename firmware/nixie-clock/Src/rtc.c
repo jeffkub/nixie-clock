@@ -102,6 +102,10 @@ void rtc_init(void)
     /* Enable the wakeup timer */
     SET_BIT(RTC->CR, RTC_CR_WUTE);
 
+    /* Enable time stamp on rising edge */
+    CLEAR_BIT(RTC->CR, RTC_CR_TSEDGE);
+    SET_BIT(RTC->CR, RTC_CR_TSE);
+
     /* Enable write protection */
     WRITE_REG(RTC->WPR, 0xFF);
 
@@ -168,6 +172,38 @@ int rtc_setTime(time_t time)
 
     /* Exit initialization mode */
     CLEAR_BIT(RTC->ISR, RTC_ISR_INIT);
+
+    return 0;
+}
+
+time_t rtc_getTimestamp(void)
+{
+    uint32_t tsssr;
+    uint32_t tstr;
+    uint32_t tsdr;
+    uint32_t dr;
+
+    if(!READ_BIT(RTC->ISR, RTC_ISR_TSF))
+    {
+        /* No timestamp event available */
+        return -1;
+    }
+
+    /* Read and clear timestamp */
+    tsssr = READ_REG(RTC->TSSSR);
+    tstr  = READ_REG(RTC->TSTR);
+    tsdr  = READ_REG(RTC->TSDR);
+    
+    CLEAR_BIT(RTC->ISR, RTC_ISR_TSF);
+
+    if(READ_BIT(RTC->ISR, RTC_ISR_TSOVF))
+    {
+        /* Timestamp overflow error */
+        CLEAR_BIT(RTC->ISR, RTC_ISR_TSOVF);
+        return -1;
+    }
+
+
 
     return 0;
 }
