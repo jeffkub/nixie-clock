@@ -8,6 +8,11 @@
 
 #include "stm32f3xx_hal.h"
 
+#define UNLOCK_WRITE()  WRITE_REG(RTC->WPR, 0xCA); \
+                        WRITE_REG(RTC->WPR, 0x53);
+
+#define LOCK_WRITE()    WRITE_REG(RTC->WPR, 0xFF);
+
 static SemaphoreHandle_t wakeupSem;
 
 static uint32_t bcdToByte(uint32_t val);
@@ -54,9 +59,7 @@ void rtc_init(void)
     HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
 
-    /* Disable write protection */
-    WRITE_REG(RTC->WPR, 0xCA);
-    WRITE_REG(RTC->WPR, 0x53);
+    UNLOCK_WRITE();
 
     /* Check if RTC calendar needs to be initialized */
     if(!READ_BIT(RTC->ISR, RTC_ISR_INITS))
@@ -106,8 +109,7 @@ void rtc_init(void)
     CLEAR_BIT(RTC->CR, RTC_CR_TSEDGE);
     SET_BIT(RTC->CR, RTC_CR_TSE);
 
-    /* Enable write protection */
-    WRITE_REG(RTC->WPR, 0xFF);
+    LOCK_WRITE();
 
     return;
 }
@@ -162,6 +164,8 @@ int rtc_setTime(time_t time)
     dr |= byteToBcd(timeStruct.tm_wday + 1  ) << RTC_DR_WDU_Pos;
     dr |= byteToBcd(timeStruct.tm_year - 100) << RTC_DR_YU_Pos;
 
+    UNLOCK_WRITE();
+
     /* Enter initialization mode */
     SET_BIT(RTC->ISR, RTC_ISR_INIT);
     while(!READ_BIT(RTC->ISR, RTC_ISR_INITF));
@@ -173,15 +177,14 @@ int rtc_setTime(time_t time)
     /* Exit initialization mode */
     CLEAR_BIT(RTC->ISR, RTC_ISR_INIT);
 
+    LOCK_WRITE();
+
     return 0;
 }
 
-time_t rtc_getTimestamp(void)
+int32_t rtc_getTsOffset(void)
 {
-    uint32_t tsssr;
-    uint32_t tstr;
-    uint32_t tsdr;
-    uint32_t dr;
+    uint32_t ssr;
 
     if(!READ_BIT(RTC->ISR, RTC_ISR_TSF))
     {
@@ -189,11 +192,8 @@ time_t rtc_getTimestamp(void)
         return -1;
     }
 
-    /* Read and clear timestamp */
-    tsssr = READ_REG(RTC->TSSSR);
-    tstr  = READ_REG(RTC->TSTR);
-    tsdr  = READ_REG(RTC->TSDR);
-    
+    /* Read and clear timestamp sub-second register */
+    ssr = READ_REG(RTC->TSSSR);
     CLEAR_BIT(RTC->ISR, RTC_ISR_TSF);
 
     if(READ_BIT(RTC->ISR, RTC_ISR_TSOVF))
@@ -203,7 +203,22 @@ time_t rtc_getTimestamp(void)
         return -1;
     }
 
+    return (int32_t)ssr;
+}
 
+void rtc_adjust(uint32_t offset, bool advance)
+{
+    uint32_t shiftr;
 
-    return 0;
+    shiftr = offset & RTC_SHIFTR_SUBFS;
+    shiftr |= advance ? RTC_SHIFTR_ADD1S : 0;
+
+    UNLOCK_WRITE();
+
+    /* Perform time shift */
+    WRITE_REG(RTC->SHIFTR, shiftr);
+
+    LOCK_WRITE();
+
+    return;
 }
