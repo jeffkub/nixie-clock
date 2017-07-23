@@ -9,6 +9,7 @@
 #include "stm32f3xx_hal.h"
 
 #include "main.h"
+#include "rtc.h"
 #include "uart3.h"
 
 typedef enum
@@ -49,25 +50,65 @@ static void gpsEnable(bool state)
     }
 }
 
-struct tm gpsTime;
-
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
+    struct tm ts;
+    time_t    localTime;
+    time_t    gpsTime;
+    int32_t   subOffset;
+
+    /* Get local RTC time */
+    localTime = rtc_getTime();
+
+    /* Get sub-second offset from 1PPS signal */
+    subOffset = rtc_getTsOffset();
+    if(subOffset < 0)
+    {
+        /* Time stamp wasn't received */
+        return;
+    }
+
+    /* Parse time from GPS sentence */
     if(dataItemsCount < GPRMC_Count)
     {
         return;
     }
 
+    /* Verify GPS data is valid (GPS lock) */
+    if(strcmp(dataItems[GPRMC_Status], "A") != 0)
+    {
+        return;
+    }
+
     if(sscanf(dataItems[GPRMC_UTCTime], "%02d%02d%02d",
-        &gpsTime.tm_hour, &gpsTime.tm_min, &gpsTime.tm_sec) != 3)
+        &ts.tm_hour, &ts.tm_min, &ts.tm_sec) != 3)
     {
         return;
     }
 
     if(sscanf(dataItems[GPRMC_Date], "%02d%02d%02d",
-        &gpsTime.tm_mday, &gpsTime.tm_mon, &gpsTime.tm_year) != 3)
+        &ts.tm_mday, &ts.tm_mon, &ts.tm_year) != 3)
     {
         return;
+    }
+
+    gpsTime = mktime(&ts);
+
+    /* Adjust local time to match GPS time */
+    if(localTime == gpsTime)
+    {
+        /* Delay local time as needed */
+        rtc_adjust(subOffset, false);
+    }
+    else if(localTime == (gpsTime - 1))
+    {
+        /* Advance local time as needed */
+        rtc_adjust(subOffset, true);
+    }
+    else
+    {
+        /* Update RTC time */
+        rtc_setTime(gpsTime);
     }
 
     return;

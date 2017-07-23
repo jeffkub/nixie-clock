@@ -123,46 +123,46 @@ void rtc_wait(void)
 
 time_t rtc_getTime(void)
 {
-    struct tm timeStruct;
+    struct tm ts;
     uint32_t  tr;
     uint32_t  dr;
 
-    /* Read timeStruct and date registers */
+    /* Read time and date registers */
     while(!READ_BIT(RTC->ISR, RTC_ISR_RSF));
     tr = READ_REG(RTC->TR);
     dr = READ_REG(RTC->DR);
     CLEAR_BIT(RTC->ISR, RTC_ISR_RSF);
 
-    memset(&timeStruct, 0, sizeof(timeStruct));
+    memset(&ts, 0, sizeof(ts));
 
     /* Process registers */
-    timeStruct.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
-    timeStruct.tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
-    timeStruct.tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
+    ts.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
+    ts.tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
+    ts.tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
 
-    timeStruct.tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
-    timeStruct.tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
-    timeStruct.tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
+    ts.tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
+    ts.tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
+    ts.tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
 
-    return mktime(&timeStruct);
+    return mktime(&ts);
 }
 
 int rtc_setTime(time_t time)
 {
-    struct tm timeStruct;
+    struct tm ts;
     uint32_t  tr = 0;
     uint32_t  dr = 0;
 
-    localtime_r(&time, &timeStruct);
+    localtime_r(&time, &ts);
 
-    tr |= byteToBcd(timeStruct.tm_sec       ) << RTC_TR_SU_Pos;
-    tr |= byteToBcd(timeStruct.tm_min       ) << RTC_TR_MNU_Pos;
-    tr |= byteToBcd(timeStruct.tm_hour      ) << RTC_TR_HU_Pos;
+    tr |= byteToBcd(ts.tm_sec       ) << RTC_TR_SU_Pos;
+    tr |= byteToBcd(ts.tm_min       ) << RTC_TR_MNU_Pos;
+    tr |= byteToBcd(ts.tm_hour      ) << RTC_TR_HU_Pos;
 
-    dr |= byteToBcd(timeStruct.tm_mday      ) << RTC_DR_DU_Pos;
-    dr |= byteToBcd(timeStruct.tm_mon  + 1  ) << RTC_DR_MU_Pos;
-    dr |= byteToBcd(timeStruct.tm_wday + 1  ) << RTC_DR_WDU_Pos;
-    dr |= byteToBcd(timeStruct.tm_year - 100) << RTC_DR_YU_Pos;
+    dr |= byteToBcd(ts.tm_mday      ) << RTC_DR_DU_Pos;
+    dr |= byteToBcd(ts.tm_mon  + 1  ) << RTC_DR_MU_Pos;
+    dr |= byteToBcd(ts.tm_wday + 1  ) << RTC_DR_WDU_Pos;
+    dr |= byteToBcd(ts.tm_year - 100) << RTC_DR_YU_Pos;
 
     UNLOCK_WRITE();
 
@@ -209,6 +209,12 @@ int32_t rtc_getTsOffset(void)
 void rtc_adjust(uint32_t offset, bool advance)
 {
     uint32_t shiftr;
+
+    if(offset == 0)
+    {
+        /* Nothing to do */
+        return;
+    }
 
     shiftr = offset & RTC_SHIFTR_SUBFS;
     shiftr |= advance ? RTC_SHIFTR_ADD1S : 0;
