@@ -1,6 +1,7 @@
 #include "gps.h"
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -94,20 +95,25 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
 
     gpsTime = mktime(&ts);
 
+    printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
+
     /* Adjust local time to match GPS time */
     if(localTime == gpsTime)
     {
         /* Delay local time as needed */
+        printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
         rtc_adjust(subOffset, false);
     }
     else if(localTime == (gpsTime - 1))
     {
         /* Advance local time as needed */
+        printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
         rtc_adjust(subOffset, true);
     }
     else
     {
         /* Update RTC time */
+        printf("Adjusting RTC clock\n");
         rtc_setTime(gpsTime);
     }
 

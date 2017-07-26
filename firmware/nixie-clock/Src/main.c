@@ -80,7 +80,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-static void HeartbeatTask(void const * argument);
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -93,6 +93,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 #if DEBUG
   initialise_monitor_handles();
+  printf("Program start\n");
 #endif /* DEBUG */
   /* USER CODE END 1 */
 
@@ -126,8 +127,6 @@ int main(void)
   TIM2->CCR2 = 0x1FF;
   TIM2->CCR3 = 0x1FF;
   TIM2->CCR4 = 0x1FF;
-
-  printf("Hello, world!\n");
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -148,8 +147,7 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  osThreadDef(heartbeatTask, HeartbeatTask, osPriorityNormal, 0, 128);
-  heartbeatTaskHandle = osThreadCreate(osThread(heartbeatTask), NULL);
+
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -364,16 +362,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void HeartbeatTask(void const * argument)
-{ 
-	for(;;)
-	{
-		TIM2->CCR1 = 0xFFFF;
-		osDelay(1000);
-		TIM2->CCR1 = 0x0000;
-		osDelay(1000);
-	}
-}
+
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
