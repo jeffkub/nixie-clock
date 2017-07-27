@@ -53,7 +53,7 @@ static void gpsEnable(bool state)
 
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    struct tm ts;
+    struct tm ts = {0};
     time_t    localTime;
     time_t    gpsTime;
     int32_t   subOffset;
@@ -93,27 +93,30 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
         return;
     }
 
+    ts.tm_mon  -= 1;
+    ts.tm_year += 100;
+
     gpsTime = mktime(&ts);
 
-    printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
+    //printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
 
     /* Adjust local time to match GPS time */
     if(localTime == gpsTime)
     {
         /* Delay local time as needed */
-        printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
-        rtc_adjust(subOffset, false);
+        //printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
+        //rtc_adjust(subOffset, false);
     }
     else if(localTime == (gpsTime - 1))
     {
         /* Advance local time as needed */
-        printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
-        rtc_adjust(subOffset, true);
+        //printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
+        //rtc_adjust(subOffset, true);
     }
     else
     {
         /* Update RTC time */
-        printf("Adjusting RTC clock\n");
+        //printf("Adjusting RTC clock\n");
         rtc_setTime(gpsTime);
     }
 

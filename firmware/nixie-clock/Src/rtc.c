@@ -123,7 +123,7 @@ void rtc_wait(void)
 
 time_t rtc_getTime(void)
 {
-    struct tm ts;
+    struct tm ts = {0};
     uint32_t  tr;
     uint32_t  dr;
 
@@ -132,8 +132,6 @@ time_t rtc_getTime(void)
     tr = READ_REG(RTC->TR);
     dr = READ_REG(RTC->DR);
     CLEAR_BIT(RTC->ISR, RTC_ISR_RSF);
-
-    memset(&ts, 0, sizeof(ts));
 
     /* Process registers */
     ts.tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
@@ -149,7 +147,7 @@ time_t rtc_getTime(void)
 
 int rtc_setTime(time_t time)
 {
-    struct tm ts;
+    struct tm ts = {0};
     uint32_t  tr = 0;
     uint32_t  dr = 0;
 
@@ -213,6 +211,11 @@ void rtc_adjust(uint32_t offset, bool advance)
     if(offset == 0)
     {
         /* Nothing to do */
+        return;
+    }
+
+    if(READ_BIT(RTC->SSR, 1 << 15))
+    {
         return;
     }
 

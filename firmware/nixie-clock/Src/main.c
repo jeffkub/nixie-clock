@@ -92,8 +92,8 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 #if DEBUG
-  initialise_monitor_handles();
-  printf("Program start\n");
+  //initialise_monitor_handles();
+  //printf("Program start\n");
 #endif /* DEBUG */
   /* USER CODE END 1 */
 
