@@ -49,7 +49,7 @@
 /* USER CODE BEGIN Includes */
 #include "uart3.h"
 #include "rtc.h"
-
+#include "timezone.h"
 #include "gps.h"
 #include "nixieDriver.h"
 /* USER CODE END Includes */
@@ -64,6 +64,9 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 osThreadId heartbeatTaskHandle;
+
+static const timeZoneRule_t timezoneDST = { "EDT", Second, Sun, Mar, 7, -4 * 60 };
+static const timeZoneRule_t timezoneSTD = { "EST", First,  Sun, Nov, 6, -5 * 60 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -369,18 +372,22 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   int    display[NUM_CNT];
-  time_t time;
+  time_t utc;
+  time_t local;
   struct tm timeStruct;
 
   /* init code for USB_DEVICE */
 //  MX_USB_DEVICE_Init();
 
+  timezone_setTimezone(&timezoneDST, &timezoneSTD);
+
   /* Infinite loop */
   for(;;)
   {
-    time = rtc_getTime();
+    utc = rtc_getTime();
+    local = timezone_toLocal(utc);
     
-    localtime_r(&time, &timeStruct);
+    localtime_r(&local, &timeStruct);
     display[0] = timeStruct.tm_hour;
     display[1] = timeStruct.tm_min;
     display[2] = timeStruct.tm_sec;
