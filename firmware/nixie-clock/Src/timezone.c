@@ -1,18 +1,27 @@
 #include "timezone.h"
 
+#include <stdbool.h>
+
+#define SECS_PER_MIN  (60)
 #define SECS_PER_HOUR (3600)
 #define SECS_PER_DAY  (SECS_PER_HOUR * 24)
 #define DAYS_PER_WEEK (7)
 
-//static timeZoneRule_t dst;
-//static timeZoneRule_t std;
+static timeZoneRule_t dst;
+static timeZoneRule_t std;
 
-//static time_t dstUTC;
-//static time_t stdUTC;
-//static time_t dstLoc;
-//static time_t stdLoc;
-
+static int    toYear(time_t time);
 static time_t toTime_t(const timeZoneRule_t* rule, int year);
+static bool   utcIsDST(time_t utc);
+
+static int toYear(time_t time)
+{
+    struct tm ts = {0};
+
+    localtime_r(&time, &ts);
+
+    return ts.tm_year;
+}
 
 static time_t toTime_t(const timeZoneRule_t* rule, int year)
 {
@@ -37,12 +46,53 @@ static time_t toTime_t(const timeZoneRule_t* rule, int year)
     return mktime(&ts);
 }
 
-time_t toLocal(time_t utc)
+static bool utcIsDST(time_t utc)
 {
-    return 0;
+    int    year;
+    time_t dstUTC;
+    time_t stdUTC;
+    bool   isDST;
+
+    year   = toYear(utc);
+    dstUTC = toTime_t(&dst, year);
+    stdUTC = toTime_t(&std, year);
+
+    if(stdUTC == dstUTC)
+    {
+        isDST = false;
+    }
+    else if(stdUTC > dstUTC)
+    {
+        isDST = (utc >= dstUTC && utc < stdUTC);
+    }
+    else
+    {
+        isDST = !(utc >= stdUTC && utc < dstUTC);
+    }
+
+    return isDST;
 }
 
-time_t toUTC(time_t local)
+void timezone_setTimezone(const timeZoneRule_t* dstRule, const timeZoneRule_t* stdRule)
 {
-    return 0;
+    dst = *dstRule;
+    std = *stdRule;
+
+    return;
+}
+
+time_t timezone_toLocal(time_t utc)
+{
+    time_t local;
+
+    if(utcIsDST(utc))
+    {
+        local = utc + (dst.offset * SECS_PER_MIN);
+    }
+    else
+    {
+        local = utc + (std.offset * SECS_PER_MIN);
+    }
+
+    return local;
 }

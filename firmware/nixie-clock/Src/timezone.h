@@ -17,7 +17,7 @@ typedef struct timeZoneRule
     int  offset;    /* offset from UTC in minutes */
 } timeZoneRule_t;
 
-time_t toLocal(time_t utc);
-time_t toUTC(time_t local);
+void   timezone_setTimezone(const timeZoneRule_t* dstRule, const timeZoneRule_t* stdRule);
+time_t timezone_toLocal(time_t utc);
 
 #endif /* __TIMEZONE_H */
