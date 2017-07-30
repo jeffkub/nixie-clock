@@ -32,7 +32,7 @@ static time_t toTime_t(const timeZoneRule_t* rule, int year)
     ts.tm_mday += (rule->dow - ts.tm_wday + DAYS_PER_WEEK) % DAYS_PER_WEEK;
 
     /* Adjust for week of month.  For last week rule, subtract one week. */
-    ts.tm_mday += (rule->week == Last) ? (-7) : (rule->week * DAYS_PER_WEEK);
+    ts.tm_mday += (rule->week == Last) ? (-DAYS_PER_WEEK) : (rule->week * DAYS_PER_WEEK);
 
     return mktime(&ts);
 }
