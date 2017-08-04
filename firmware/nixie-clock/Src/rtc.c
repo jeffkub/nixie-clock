@@ -1,23 +1,55 @@
+/*******************************************************************************
+MIT License
+
+Copyright (c) 2017 Jeff Kubascik
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*******************************************************************************/
+
+/* Includes *******************************************************************/
 #include "rtc.h"
 
-#include <string.h>
+#include "globals.h"
 
+#include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "semphr.h"
 
-#include "stm32f3xx_hal.h"
 
+/* Private definitions ********************************************************/
 #define UNLOCK_WRITE()  WRITE_REG(RTC->WPR, 0xCA); \
                         WRITE_REG(RTC->WPR, 0x53);
 
 #define LOCK_WRITE()    WRITE_REG(RTC->WPR, 0xFF);
 
-static SemaphoreHandle_t wakeupSem;
 
+/* Private variables **********************************************************/
+static SemaphoreHandle_t wakeup_sem;
+
+
+/* Private function prototypes ************************************************/
 static uint32_t bcdToByte(uint32_t val);
 static uint32_t byteToBcd(uint32_t val);
 
+
+/* Private function definitions ***********************************************/
 static uint32_t bcdToByte(uint32_t val)
 {
     return (((val & 0xF0) >> 4) * 10) + (val & 0x0F);
@@ -30,9 +62,11 @@ static uint32_t byteToBcd(uint32_t val)
     return ((val / 10) << 4) | (val % 10);
 }
 
+
+/* Public function definitions ************************************************/
 void RTC_WKUP_IRQHandler(void)
 {
-    BaseType_t taskWoken = pdFALSE;
+    BaseType_t task_woken = pdFALSE;
 
     if(READ_BIT(RTC->ISR, RTC_ISR_WUTF))
     {
@@ -40,17 +74,17 @@ void RTC_WKUP_IRQHandler(void)
         CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
         WRITE_REG(EXTI->PR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
 
-        xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
+        xSemaphoreGiveFromISR(wakeup_sem, &task_woken);
     }
 
-    portYIELD_FROM_ISR(taskWoken);
+    portYIELD_FROM_ISR(task_woken);
 
     return;
 }
 
 void rtc_init(void)
 {
-    wakeupSem = xSemaphoreCreateBinary();
+    wakeup_sem = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();
@@ -116,7 +150,7 @@ void rtc_init(void)
 
 void rtc_wait(void)
 {
-    xSemaphoreTake(wakeupSem, portMAX_DELAY);
+    xSemaphoreTake(wakeup_sem, portMAX_DELAY);
 
     return;
 }

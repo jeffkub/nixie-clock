@@ -22,28 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#ifndef __RTC_H
-#define __RTC_H
+#ifndef __GLOBALS_H
+#define __GLOBALS_H
 
 /* Includes *******************************************************************/
+#include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
+#include <sys/types.h>
 
 
 /* Definitions ****************************************************************/
+#define PB3_Pin                 GPIO_PIN_4
+#define PB3_GPIO_Port           GPIOA
+
+#define PB2_Pin                 GPIO_PIN_5
+#define PB2_GPIO_Port           GPIOA
+
+#define PB1_Pin                 GPIO_PIN_6
+#define PB1_GPIO_Port           GPIOA
+
+#define GPS_RESET_Pin           GPIO_PIN_2
+#define GPS_RESET_GPIO_Port     GPIOB
+
+#define DISP_LE_Pin             GPIO_PIN_14
+#define DISP_LE_GPIO_Port       GPIOB
+
+#define DISP_BL_Pin             GPIO_PIN_8
+#define DISP_BL_GPIO_Port       GPIOA
+
+#define USB_VBUS_Pin            GPIO_PIN_10
+#define USB_VBUS_GPIO_Port      GPIOA
+
+#define PB4_Pin                 GPIO_PIN_6
+#define PB4_GPIO_Port           GPIOB
+
+#define HV_EN_Pin               GPIO_PIN_9
+#define HV_EN_GPIO_Port         GPIOB
 
 
-/* Public function prototypes ************************************************/
-void rtc_init(void);
-
-void rtc_wait(void);
-
-time_t rtc_getTime(void);
-int    rtc_setTime(time_t time);
-
-int32_t rtc_getTsOffset(void);
-
-void rtc_adjust(uint32_t offset, bool advance);
-
-
-#endif /* __RTC_H */
+#endif /* __GLOBALS_H */

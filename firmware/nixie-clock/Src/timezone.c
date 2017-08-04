@@ -1,19 +1,52 @@
+/*******************************************************************************
+MIT License
+
+Copyright (c) 2017 Jeff Kubascik
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*******************************************************************************/
+
+/* Includes *******************************************************************/
 #include "timezone.h"
 
 #include <stdbool.h>
 
+
+/* Private definitions ********************************************************/
 #define SECS_PER_MIN  (60)
 #define SECS_PER_HOUR (3600)
 #define SECS_PER_DAY  (SECS_PER_HOUR * 24)
 #define DAYS_PER_WEEK (7)
 
+
+/* Private variables **********************************************************/
 static timeZoneRule_t dst;
 static timeZoneRule_t std;
 
+
+/* Private function prototypes ************************************************/
 static int    toYear(time_t time);
 static time_t toTime_t(const timeZoneRule_t* rule, int year);
 static bool   utcIsDST(time_t utc);
 
+
+/* Private function definitions ***********************************************/
 static int toYear(time_t time)
 {
     struct tm ts = {0};
@@ -49,38 +82,40 @@ static time_t toTime_t(const timeZoneRule_t* rule, int year)
 static bool utcIsDST(time_t utc)
 {
     int    year;
-    time_t dstLoc;
-    time_t stdLoc;
-    time_t dstUTC;
-    time_t stdUTC;
+    time_t dst_loc;
+    time_t std_loc;
+    time_t dst_utc;
+    time_t std_utc;
     bool   isDST;
 
     year   = toYear(utc);
-    dstLoc = toTime_t(&dst, year);
-    stdLoc = toTime_t(&std, year);
-    dstUTC = dstLoc - (std.offset * SECS_PER_MIN);
-    stdUTC = stdLoc - (dst.offset * SECS_PER_MIN);
+    dst_loc = toTime_t(&dst, year);
+    std_loc = toTime_t(&std, year);
+    dst_utc = dst_loc - (std.offset * SECS_PER_MIN);
+    std_utc = std_loc - (dst.offset * SECS_PER_MIN);
 
-    if(stdUTC == dstUTC)
+    if(std_utc == dst_utc)
     {
         isDST = false;
     }
-    else if(stdUTC > dstUTC)
+    else if(std_utc > dst_utc)
     {
-        isDST = (utc >= dstUTC && utc < stdUTC);
+        isDST = (utc >= dst_utc && utc < std_utc);
     }
     else
     {
-        isDST = !(utc >= stdUTC && utc < dstUTC);
+        isDST = !(utc >= std_utc && utc < dst_utc);
     }
 
     return isDST;
 }
 
-void timezone_setTimezone(const timeZoneRule_t* dstRule, const timeZoneRule_t* stdRule)
+
+/* Public function definitions ************************************************/
+void timezone_set(const timeZoneRule_t* dst_rule, const timeZoneRule_t* std_rule)
 {
-    dst = *dstRule;
-    std = *stdRule;
+    dst = *dst_rule;
+    std = *std_rule;
 
     return;
 }

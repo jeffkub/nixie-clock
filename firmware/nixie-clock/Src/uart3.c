@@ -1,77 +1,113 @@
+/*******************************************************************************
+MIT License
+
+Copyright (c) 2017 Jeff Kubascik
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*******************************************************************************/
+
+/* Includes *******************************************************************/
 #include "uart3.h"
 
-#include <ctype.h>
+#include "globals.h"
 
+#include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "semphr.h"
 
-#include "stm32f3xx_hal.h"
 
+/* Private definitions ********************************************************/
 #define UART_INST USART3
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
 
 #define BUFFER_SIZE 256
 
-static SemaphoreHandle_t devMutex;
-static SemaphoreHandle_t doneSem;
+
+/* Private variables **********************************************************/
+static SemaphoreHandle_t dev_mutex;
+static SemaphoreHandle_t done_sem;
 
 static char   rxBuf[BUFFER_SIZE];
 static size_t rxBufReadPtr  = 0;
 static size_t rxBufWritePtr = 0;
 
+
+/* Private function prototypes ************************************************/
+
+
+/* Private function definitions ***********************************************/
+
+
+/* Public function definitions ************************************************/
 void USART3_IRQHandler(void)
 {
-    BaseType_t taskWoken = pdFALSE;
-    uint32_t   isrflags;
-    uint32_t   rxData;
+    BaseType_t task_woken = pdFALSE;
+    uint32_t   isr_flags;
+    uint32_t   data;
 
     /* Read interrupt flags */
-    isrflags = READ_REG(UART_INST->ISR);
+    isr_flags = READ_REG(UART_INST->ISR);
 
     /* RX interrupt */
-    if(isrflags & USART_ISR_RXNE)
+    if(isr_flags & USART_ISR_RXNE)
     {
-        rxData = (char) READ_REG(UART_INST->RDR);
+        data = (char) READ_REG(UART_INST->RDR);
 
         if((rxBufWritePtr - rxBufReadPtr) < BUFFER_SIZE)
         {
-            rxBuf[rxBufWritePtr % BUFFER_SIZE] = rxData;
+            rxBuf[rxBufWritePtr % BUFFER_SIZE] = data;
             rxBufWritePtr++;
         }
 
-        xSemaphoreGiveFromISR(doneSem, &taskWoken);
+        xSemaphoreGiveFromISR(done_sem, &task_woken);
     }
-    
-    /* Acknowledge interrupts */
-    WRITE_REG(UART_INST->ICR, isrflags);
 
-    portYIELD_FROM_ISR(taskWoken);
+    /* Acknowledge interrupts */
+    WRITE_REG(UART_INST->ICR, isr_flags);
+
+    portYIELD_FROM_ISR(task_woken);
 
     return;
 }
 
 void uart3_init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitTypeDef gpio;
 
-    devMutex = xSemaphoreCreateMutex();
-    doneSem  = xSemaphoreCreateBinary();
+    dev_mutex = xSemaphoreCreateMutex();
+    done_sem  = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
-  
-    /**USART3 GPIO Configuration    
+
+    /**USART3 GPIO Configuration
     PB10     ------> USART3_TX
-    PB11     ------> USART3_RX 
+    PB11     ------> USART3_RX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    gpio.Pin = GPIO_PIN_10|GPIO_PIN_11;
+    gpio.Mode = GPIO_MODE_AF_PP;
+    gpio.Pull = GPIO_PULLUP;
+    gpio.Speed = GPIO_SPEED_FREQ_HIGH;
+    gpio.Alternate = GPIO_AF7_USART3;
+    HAL_GPIO_Init(GPIOB, &gpio);
 
     /* Peripheral interrupt init */
     HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
@@ -111,7 +147,7 @@ ssize_t uart3_read(void * buf, size_t nbyte)
         /* Wait for character to read */
         while(rxBufReadPtr == rxBufWritePtr)
         {
-            xSemaphoreTake(doneSem, portMAX_DELAY);
+            xSemaphoreTake(done_sem, portMAX_DELAY);
         }
 
         ((char*)buf)[read] = rxBuf[rxBufReadPtr % BUFFER_SIZE];

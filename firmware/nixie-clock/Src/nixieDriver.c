@@ -1,7 +1,31 @@
+/*******************************************************************************
+MIT License
+
+Copyright (c) 2017 Jeff Kubascik
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*******************************************************************************/
+
+/* Includes *******************************************************************/
 #include "nixieDriver.h"
 
-#include <stdbool.h>
-#include <string.h>
+#include "globals.h"
 
 #include "FreeRTOS.h"
 #include "portmacro.h"
@@ -11,16 +35,20 @@
 #include "stm32f3xx_hal.h"
 #include "stm32f3xx_hal_spi.h"
 
-#include "main.h"
 
+/* Global variables ***********************************************************/
+extern SPI_HandleTypeDef hspi2;
+
+
+/* Private definitions ********************************************************/
 #define TUBE_CNT     6
 #define DIGIT_CNT   10
 
 #define SHIFT_BYTES  8
 #define BIT_CNT      (SHIFT_BYTES * 8)
 
-extern SPI_HandleTypeDef hspi2;
 
+/* Private variables **********************************************************/
 static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
 {
     { 10,  9,  8,  7, 26, 25, 24, 23, 22, 11 },
@@ -33,9 +61,11 @@ static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
     { 56, 55, 54, 43, 42, 41, 40, 39, 58, 57 }
 };
 
-static SemaphoreHandle_t devMutex;
-static SemaphoreHandle_t doneSem;
+static SemaphoreHandle_t dev_mutex;
+static SemaphoreHandle_t done_sem;
 
+
+/* Private function prototypes ************************************************/
 static void hvEnable(bool state);
 static void dispEnable(bool state);
 static void latchEnable(bool state);
@@ -43,6 +73,8 @@ static void latchEnable(bool state);
 static void clrbit(void* addr, unsigned int cnt);
 static void spiTransmit(const void* data, size_t len);
 
+
+/* Private function definitions ***********************************************/
 static void hvEnable(bool state)
 {
     if(state)
@@ -66,7 +98,7 @@ static void dispEnable(bool state)
     {
         HAL_GPIO_WritePin(DISP_BL_GPIO_Port, DISP_BL_Pin, GPIO_PIN_SET);
     }
-    
+
     return;
 }
 
@@ -87,7 +119,7 @@ static void latchEnable(bool state)
 
 static void clrbit(void* addr, unsigned int cnt)
 {
-    uint8_t* byte = ((uint8_t*)addr) + (cnt / 8);
+    uint8_t*     byte = ((uint8_t*)addr) + (cnt / 8);
     unsigned int bit = cnt % 8;
 
     *byte &= ~(1 << bit);
@@ -106,16 +138,18 @@ static void spiTransmit(const void* data, size_t len)
     }
 
     /* Wait for transmit to complete */
-    xSemaphoreTake(doneSem, portMAX_DELAY);
+    xSemaphoreTake(done_sem, portMAX_DELAY);
 
     return;
 }
 
+
+/* Public function definitions ************************************************/
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
     BaseType_t taskWoken;
 
-    xSemaphoreGiveFromISR(doneSem, &taskWoken);
+    xSemaphoreGiveFromISR(done_sem, &taskWoken);
 
     portYIELD_FROM_ISR(taskWoken);
 
@@ -124,8 +158,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 
 void nixieDriver_init(void)
 {
-    devMutex = xSemaphoreCreateMutex();
-    doneSem = xSemaphoreCreateBinary();
+    dev_mutex = xSemaphoreCreateMutex();
+    done_sem  = xSemaphoreCreateBinary();
 
     hvEnable(true);
     dispEnable(false);
@@ -135,12 +169,12 @@ void nixieDriver_init(void)
 
 void nixieDriver_set(int* vals)
 {
-    int index;
+    int     index;
     uint8_t bitmask[SHIFT_BYTES];
-    int tensDigit;
-    int onesDigit;
+    int     tensDigit;
+    int     onesDigit;
 
-    xSemaphoreTake(devMutex, portMAX_DELAY);
+    xSemaphoreTake(dev_mutex, portMAX_DELAY);
 
     memset(bitmask, 0xFF, sizeof(bitmask));
 
@@ -172,7 +206,7 @@ void nixieDriver_set(int* vals)
 
     dispEnable(true);
 
-    xSemaphoreGive(devMutex);
+    xSemaphoreGive(dev_mutex);
 
     return;
 }
