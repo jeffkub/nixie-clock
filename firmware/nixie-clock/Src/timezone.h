@@ -11,10 +11,10 @@ typedef struct timeZoneRule
 {
     char abbrev[6]; /* Five chars max */
     int  week;      /* First, Second, Third, Fourth, or Last week of the month */
-    int  dow;       /* day of week, 0=Sun, 1=Mon, ... 6=Sat */
-    int  month;     /* 0=Jan, 1=Feb, ... 11=Dec */
-    int  hour;      /* 0-23 */
-    int  offset;    /* offset from UTC in minutes */
+    int  dow;       /* Day of week 0=Sun, 1=Mon, ... 6=Sat */
+    int  month;     /* Month of year 0=Jan, 1=Feb, ... 11=Dec */
+    int  hour;      /* Local time 0-23 */
+    int  offset;    /* Offset from UTC in minutes */
 } timeZoneRule_t;
 
 void   timezone_setTimezone(const timeZoneRule_t* dstRule, const timeZoneRule_t* stdRule);

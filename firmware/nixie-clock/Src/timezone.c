@@ -49,13 +49,17 @@ static time_t toTime_t(const timeZoneRule_t* rule, int year)
 static bool utcIsDST(time_t utc)
 {
     int    year;
+    time_t dstLoc;
+    time_t stdLoc;
     time_t dstUTC;
     time_t stdUTC;
     bool   isDST;
 
     year   = toYear(utc);
-    dstUTC = toTime_t(&dst, year);
-    stdUTC = toTime_t(&std, year);
+    dstLoc = toTime_t(&dst, year);
+    stdLoc = toTime_t(&std, year);
+    dstUTC = dstLoc - (std.offset * SECS_PER_MIN);
+    stdUTC = stdLoc - (dst.offset * SECS_PER_MIN);
 
     if(stdUTC == dstUTC)
     {

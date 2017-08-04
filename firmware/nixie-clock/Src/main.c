@@ -65,8 +65,8 @@ osThreadId defaultTaskHandle;
 /* Private variables ---------------------------------------------------------*/
 osThreadId heartbeatTaskHandle;
 
-static const timeZoneRule_t timezoneDST = { "EDT", Second, Sun, Mar, 7, -4 * 60 };
-static const timeZoneRule_t timezoneSTD = { "EST", First,  Sun, Nov, 6, -5 * 60 };
+static const timeZoneRule_t timezoneDST = { "EDT", Second, Sun, Mar, 2, -4 * 60 };
+static const timeZoneRule_t timezoneSTD = { "EST", First,  Sun, Nov, 2, -5 * 60 };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
