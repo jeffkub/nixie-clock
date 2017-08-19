@@ -28,6 +28,7 @@ SOFTWARE.
 #include "cmsis_os.h"
 #include "usb_device.h"
 
+#include "debug.h"
 #include "uart3.h"
 #include "rtc.h"
 #include "timezone.h"
@@ -244,9 +245,10 @@ static void mainTask(void const * argument)
 int main(void)
 {
 #if DEBUG
-    //initialise_monitor_handles();
-    //printf("Program start\n");
+    initialise_monitor_handles();
 #endif /* DEBUG */
+
+    debug_printf("Program start\n");
 
     /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
     HAL_Init();

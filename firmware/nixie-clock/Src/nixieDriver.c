@@ -32,6 +32,7 @@ SOFTWARE.
 #include "task.h"
 #include "semphr.h"
 
+#include "debug.h"
 #include "stm32f3xx_hal.h"
 #include "stm32f3xx_hal_spi.h"
 
@@ -132,7 +133,7 @@ static void spiTransmit(const void* data, size_t len)
     /* Start transmit */
     if(HAL_SPI_Transmit_IT(&hspi2, (uint8_t*)data, len) != HAL_OK)
     {
-        printf("SPI transmit failed\n");
+        debug_printf("SPI transmit failed\n");
 
         return;
     }

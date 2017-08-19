@@ -29,6 +29,7 @@ SOFTWARE.
 #include "stm32f3xx_hal.h"
 #include "cmsis_os.h"
 
+#include "debug.h"
 #include "rtc.h"
 #include "uart3.h"
 
@@ -125,25 +126,25 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
 
     gpsTime = mktime(&ts);
 
-    //printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
+    //debug_printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
 
     /* Adjust local time to match GPS time */
     if(localTime == gpsTime)
     {
         /* Delay local time as needed */
-        //printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
+        //debug_printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
         //rtc_adjust(subOffset, false);
     }
     else if(localTime == (gpsTime - 1))
     {
         /* Advance local time as needed */
-        //printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
+        //debug_printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
         //rtc_adjust(subOffset, true);
     }
     else
     {
         /* Update RTC time */
-        //printf("Adjusting RTC clock\n");
+        //debug_printf("Adjusting RTC clock\n");
         rtc_setTime(gpsTime);
     }
 
