@@ -81,21 +81,15 @@ static void gpsEnable(bool state)
 
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    struct tm ts = {0};
-    time_t    localTime;
+    time_t    rtcTime;
+    struct tm rtcTimeStruct = {0};
     time_t    gpsTime;
-    int32_t   subOffset;
+    struct tm gpsTimeStruct = {0};
+    int       subOffset;
 
     /* Get local RTC time */
-    localTime = rtc_getTime();
-
-    /* Get sub-second offset from 1PPS signal */
-    subOffset = rtc_getTsOffset();
-    if(subOffset < 0)
-    {
-        /* Time stamp wasn't received */
-        return;
-    }
+    rtc_getTime(&rtcTimeStruct, &subOffset);
+    rtcTime = mktime(&rtcTimeStruct);
 
     /* Parse time from GPS sentence */
     if(dataItemsCount < GPRMC_Count)
@@ -110,42 +104,41 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
     }
 
     if(sscanf(dataItems[GPRMC_UTCTime], "%02d%02d%02d",
-        &ts.tm_hour, &ts.tm_min, &ts.tm_sec) != 3)
+        &gpsTimeStruct.tm_hour, &gpsTimeStruct.tm_min, &gpsTimeStruct.tm_sec) != 3)
     {
         return;
     }
 
     if(sscanf(dataItems[GPRMC_Date], "%02d%02d%02d",
-        &ts.tm_mday, &ts.tm_mon, &ts.tm_year) != 3)
+        &gpsTimeStruct.tm_mday, &gpsTimeStruct.tm_mon, &gpsTimeStruct.tm_year) != 3)
     {
         return;
     }
 
-    ts.tm_mon  -= 1;
-    ts.tm_year += 100;
+    gpsTimeStruct.tm_mon  -= 1;
+    gpsTimeStruct.tm_year += 100;
 
-    gpsTime = mktime(&ts);
+    gpsTime = mktime(&gpsTimeStruct);
 
-    //debug_printf("localTime=%d, gpsTime=%d\n", (int)localTime, (int)gpsTime);
+    //debug_printf("rtcTime=%d, gpsTime=%d\n", (int)rtcTime, (int)gpsTime);
 
     /* Adjust local time to match GPS time */
-    if(localTime == gpsTime)
+    if(rtcTime == gpsTime)
     {
-        /* Delay local time as needed */
-        //debug_printf("Delaying RTC clock subOffset=%d\n", (int)subOffset);
+        /* RTC clock is ahead of the GPS clock */
         //rtc_adjust(subOffset, false);
     }
-    else if(localTime == (gpsTime - 1))
+    else if(rtcTime == (gpsTime - 1))
     {
-        /* Advance local time as needed */
-        //debug_printf("Advancing RTC clock subOffset=%d\n", (int)subOffset);
+        /* RTC clock is behind the GPS clock */
         //rtc_adjust(subOffset, true);
     }
     else
     {
-        /* Update RTC time */
-        //debug_printf("Adjusting RTC clock\n");
-        rtc_setTime(gpsTime);
+        /* RTC clock is out of sync with the GPS clock */
+        rtc_setTime(&gpsTimeStruct);
+
+        debug_printf("Adjusted RTC clock\n");
     }
 
     return;
@@ -178,6 +171,9 @@ static void gpsTask(void const * argument)
     char    sentence[128];
     char *  dataItems[32];
     ssize_t dataItemsCount;
+
+    /* This task is going to use floating point operations */
+    portTASK_USES_FLOATING_POINT();
 
     for(;;)
     {

@@ -38,10 +38,8 @@ void rtc_init(void);
 
 void rtc_wait(void);
 
-time_t rtc_getTime(void);
-int    rtc_setTime(time_t time);
-
-int32_t rtc_getTsOffset(void);
+void rtc_getTime(struct tm * ts, int * subsec);
+void rtc_setTime(const struct tm * ts);
 
 void rtc_adjust(uint32_t offset, bool advance);
 

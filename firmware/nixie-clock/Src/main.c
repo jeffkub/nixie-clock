@@ -214,9 +214,10 @@ static void tim2Init(void)
 static void mainTask(void const * argument)
 {
     int       display[NUM_CNT];
-    time_t    utc;
-    time_t    local;
-    struct tm time;
+    time_t    utcTime;
+    struct tm utcTimeStruct = {0};
+    time_t    localTime;
+    struct tm localTimeStruct = {0};
 
     //MX_USB_DEVICE_Init();
 
@@ -225,14 +226,16 @@ static void mainTask(void const * argument)
     while(true)
     {
         /* Determine current time */
-        utc   = rtc_getTime();
-        local = timezone_toLocal(utc);
-        localtime_r(&local, &time);
+        rtc_getTime(&utcTimeStruct, NULL);
+        utcTime = mktime(&utcTimeStruct);
 
-        /* Update nixie tubes */
-        display[0] = time.tm_hour;
-        display[1] = time.tm_min;
-        display[2] = time.tm_sec;
+        localTime = timezone_toLocal(utcTime);
+        localtime_r(&localTime, &localTimeStruct);
+
+        /* Update nixie tube digits */
+        display[0] = localTimeStruct.tm_hour;
+        display[1] = localTimeStruct.tm_min;
+        display[2] = localTimeStruct.tm_sec;
         nixieDriver_set(display);
 
         /* Wait for second to increment */
