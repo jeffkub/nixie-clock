@@ -151,6 +151,11 @@ static void gpioInit(void)
     gpio.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(PB4_GPIO_Port, &gpio);
 
+    gpio.Pin  = GPS_PPS_Pin;
+    gpio.Mode = GPIO_MODE_IT_RISING;
+    gpio.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPS_PPS_GPIO_Port, &gpio);
+
     return;
 }
 

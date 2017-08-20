@@ -58,6 +58,10 @@ typedef enum
 /* Private variables **********************************************************/
 static osThreadId gpsTaskHandle;
 
+static struct tm ppsTimestamp;
+static int       ppsTimestampSubsec;
+static bool      ppsTimestampValid = false;
+
 
 /* Private function prototypes ************************************************/
 static void gpsEnable(bool state);
@@ -203,8 +207,27 @@ static void gpsTask(void const * argument)
 
 
 /* Public function definitions ************************************************/
+void EXTI15_10_IRQHandler(void)
+{
+    if(READ_BIT(EXTI->PR, EXTI_PR_PR13))
+    {
+        /* Acknowledge interrupt */
+        SET_BIT(EXTI->PR, EXTI_PR_PR13);
+
+        /* Get the RTC time */
+        rtc_getTimeFromISR(&ppsTimestamp, &ppsTimestampSubsec);
+        ppsTimestampValid = true;
+    }
+
+    return;
+}
+
 void gps_init(void)
 {
+    /* PPS pin interrupt init */
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
     osThreadDef(gpsTaskDef, gpsTask, osPriorityNormal, 0, 512);
     gpsTaskHandle = osThreadCreate(osThread(gpsTaskDef), NULL);
 

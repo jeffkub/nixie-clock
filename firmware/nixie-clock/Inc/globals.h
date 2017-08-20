@@ -49,6 +49,9 @@ SOFTWARE.
 #define GPS_RESET_Pin           GPIO_PIN_2
 #define GPS_RESET_GPIO_Port     GPIOB
 
+#define GPS_PPS_Pin             GPIO_PIN_13
+#define GPS_PPS_GPIO_Port       GPIOC
+
 #define DISP_LE_Pin             GPIO_PIN_14
 #define DISP_LE_GPIO_Port       GPIOB
 
