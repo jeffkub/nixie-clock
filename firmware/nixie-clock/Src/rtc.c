@@ -220,6 +220,39 @@ void rtc_getTime(struct tm * ts, int * subsec)
     return;
 }
 
+void rtc_getTimeFromISR(struct tm * ts, int * subsec)
+{
+    static const struct tm zeroTime = {0};
+    uint32_t isrStatus;
+    uint32_t dr;
+    uint32_t tr;
+    uint32_t ssr;
+
+    /* Atomically read the time and date registers */
+    isrStatus = taskENTER_CRITICAL_FROM_ISR();
+    readTimeRegs(&dr, &tr, &ssr);
+    taskEXIT_CRITICAL_FROM_ISR(isrStatus);
+
+    /* Fill out the time struct */
+    *ts = zeroTime;
+
+    ts->tm_sec  = bcdToByte((tr & (RTC_TR_ST  | RTC_TR_SU )) >> RTC_TR_SU_Pos );
+    ts->tm_min  = bcdToByte((tr & (RTC_TR_MNT | RTC_TR_MNU)) >> RTC_TR_MNU_Pos);
+    ts->tm_hour = bcdToByte((tr & (RTC_TR_HT  | RTC_TR_HU )) >> RTC_TR_HU_Pos );
+
+    ts->tm_mday = bcdToByte((dr & (RTC_DR_DT  | RTC_DR_DU )) >> RTC_DR_DU_Pos );
+    ts->tm_mon  = bcdToByte((dr & (RTC_DR_MT  | RTC_DR_MU )) >> RTC_DR_MU_Pos ) - 1;
+    ts->tm_wday = bcdToByte((dr & (RTC_DR_WDU             )) >> RTC_DR_WDU_Pos) - 1;
+    ts->tm_year = bcdToByte((dr & (RTC_DR_YT  | RTC_DR_YU )) >> RTC_DR_YU_Pos ) + 100;
+
+    if(subsec)
+    {
+        *subsec = (int)ssr;
+    }
+
+    return;
+}
+
 void rtc_setTime(const struct tm * ts)
 {
     uint32_t tr = 0;
@@ -253,30 +286,6 @@ void rtc_setTime(const struct tm * ts)
     taskEXIT_CRITICAL();
 
     return;
-}
-
-int32_t rtc_getTsOffset(void)
-{
-    uint32_t ssr;
-
-    if(!READ_BIT(RTC->ISR, RTC_ISR_TSF))
-    {
-        /* No timestamp event available */
-        return -1;
-    }
-
-    /* Read and clear timestamp sub-second register */
-    ssr = READ_REG(RTC->TSSSR);
-    CLEAR_BIT(RTC->ISR, RTC_ISR_TSF);
-
-    if(READ_BIT(RTC->ISR, RTC_ISR_TSOVF))
-    {
-        /* Timestamp overflow error */
-        CLEAR_BIT(RTC->ISR, RTC_ISR_TSOVF);
-        return -1;
-    }
-
-    return (int32_t)ssr;
 }
 
 void rtc_adjust(uint32_t offset, bool advance)

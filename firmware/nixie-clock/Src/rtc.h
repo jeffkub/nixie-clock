@@ -39,6 +39,7 @@ void rtc_init(void);
 void rtc_wait(void);
 
 void rtc_getTime(struct tm * ts, int * subsec);
+void rtc_getTimeFromISR(struct tm * ts, int * subsec);
 void rtc_setTime(const struct tm * ts);
 
 void rtc_adjust(uint32_t offset, bool advance);
