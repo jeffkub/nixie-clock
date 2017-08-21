@@ -31,9 +31,16 @@ SOFTWARE.
 /* Definitions ****************************************************************/
 #if DEBUG
 #define debug_printf(...) 	printf(__VA_ARGS__) 
+#define debug_breakpoint()	__asm__("BKPT")
+#define debug_assert(x)		if(!(x)) debug_breakpoint()
+
 #else
-#define debug_printf(...)
+#define debug_printf(...) 	((void) 0)
+#define debug_breakpoint() 	((void) 0)
+#define debug_assert(x)		((void) 0)
+
 #endif
+
 
 /* Public function prototypes ************************************************/
 

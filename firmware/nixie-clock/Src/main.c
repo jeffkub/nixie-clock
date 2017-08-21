@@ -280,6 +280,7 @@ int main(void)
 
     osThreadDef(mainTaskDef, mainTask, osPriorityNormal, 0, 128);
     defaultTaskHandle = osThreadCreate(osThread(mainTaskDef), NULL);
+    debug_assert(defaultTaskHandle);
 
     /* Start scheduler */
     osKernelStart();

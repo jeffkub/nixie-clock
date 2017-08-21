@@ -28,6 +28,7 @@ SOFTWARE.
 #include "globals.h"
 #include "stm32f3xx_hal.h"
 #include "cmsis_os.h"
+#include "queue.h"
 
 #include "debug.h"
 #include "rtc.h"
@@ -54,13 +55,17 @@ typedef enum
     GPRMC_Count
 } GPRMC_Fields;
 
+typedef struct
+{
+    struct tm dateTime;
+    int       subsec;
+} timestamp_t;
+
 
 /* Private variables **********************************************************/
 static osThreadId gpsTaskHandle;
 
-static struct tm ppsTimestamp;
-static int       ppsTimestampSubsec;
-static bool      ppsTimestampValid = false;
+static QueueHandle_t timestampQueue;
 
 
 /* Private function prototypes ************************************************/
@@ -85,15 +90,10 @@ static void gpsEnable(bool state)
 
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    time_t    rtcTime;
-    struct tm rtcTimeStruct = {0};
-    time_t    gpsTime;
-    struct tm gpsTimeStruct = {0};
-    int       subOffset;
-
-    /* Get local RTC time */
-    rtc_getTime(&rtcTimeStruct, &subOffset);
-    rtcTime = mktime(&rtcTimeStruct);
+    timestamp_t rtcTimestamp;
+    time_t      rtcTime;
+    struct tm   gpsTimeStruct = {0};
+    time_t      gpsTime;
 
     /* Parse time from GPS sentence */
     if(dataItemsCount < GPRMC_Count)
@@ -123,6 +123,14 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
     gpsTimeStruct.tm_year += 100;
 
     gpsTime = mktime(&gpsTimeStruct);
+
+    /* Get RTC timestamp when the PPS signal was asserted */
+    if(xQueueReceive(timestampQueue, &rtcTimestamp, 0) == pdFALSE)
+    {
+        return;
+    }
+
+    rtcTime = mktime(&rtcTimestamp.dateTime);
 
     //debug_printf("rtcTime=%d, gpsTime=%d\n", (int)rtcTime, (int)gpsTime);
 
@@ -209,27 +217,35 @@ static void gpsTask(void const * argument)
 /* Public function definitions ************************************************/
 void EXTI15_10_IRQHandler(void)
 {
+    BaseType_t taskWoken = pdFALSE;
+    timestamp_t timestamp;
+
     if(READ_BIT(EXTI->PR, EXTI_PR_PR13))
     {
         /* Acknowledge interrupt */
         SET_BIT(EXTI->PR, EXTI_PR_PR13);
 
-        /* Get the RTC time */
-        rtc_getTimeFromISR(&ppsTimestamp, &ppsTimestampSubsec);
-        ppsTimestampValid = true;
+        rtc_getTimeFromISR(&timestamp.dateTime, &timestamp.subsec);
+        xQueueOverwriteFromISR(timestampQueue, &timestamp, &taskWoken);
     }
+
+    portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
 
 void gps_init(void)
 {
-    /* PPS pin interrupt init */
-    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+    timestampQueue = xQueueCreate(1, sizeof(timestamp_t));
+    debug_assert(timestampQueue);
 
     osThreadDef(gpsTaskDef, gpsTask, osPriorityNormal, 0, 512);
     gpsTaskHandle = osThreadCreate(osThread(gpsTaskDef), NULL);
+    debug_assert(gpsTaskHandle);
+
+    /* PPS pin interrupt init */
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
     gpsEnable(true);
 

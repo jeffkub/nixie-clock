@@ -97,7 +97,7 @@ static uint32_t byteToBcd(uint32_t val)
 /* Public function definitions ************************************************/
 void RTC_WKUP_IRQHandler(void)
 {
-    BaseType_t task_woken = pdFALSE;
+    BaseType_t taskWoken = pdFALSE;
 
     if(READ_BIT(RTC->ISR, RTC_ISR_WUTF))
     {
@@ -105,10 +105,10 @@ void RTC_WKUP_IRQHandler(void)
         CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
         WRITE_REG(EXTI->PR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
 
-        xSemaphoreGiveFromISR(wakeup_sem, &task_woken);
+        xSemaphoreGiveFromISR(wakeup_sem, &taskWoken);
     }
 
-    portYIELD_FROM_ISR(task_woken);
+    portYIELD_FROM_ISR(taskWoken);
 
     return;
 }
@@ -223,7 +223,7 @@ void rtc_getTime(struct tm * ts, int * subsec)
 void rtc_getTimeFromISR(struct tm * ts, int * subsec)
 {
     static const struct tm zeroTime = {0};
-    uint32_t isrStatus;
+    UBaseType_t isrStatus;
     uint32_t dr;
     uint32_t tr;
     uint32_t ssr;
