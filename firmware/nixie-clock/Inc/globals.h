@@ -37,6 +37,8 @@ SOFTWARE.
 
 
 /* Definitions ****************************************************************/
+
+/* GPIO pin definitions */
 #define PB3_Pin                 GPIO_PIN_4
 #define PB3_GPIO_Port           GPIOA
 
@@ -66,6 +68,15 @@ SOFTWARE.
 
 #define HV_EN_Pin               GPIO_PIN_9
 #define HV_EN_GPIO_Port         GPIOB
+
+/* Interrupt priorities - smaller number is higher priority.  Priorities must be
+ * lower (larger) than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
+#define EXTI15_10_IRQ_PRIORITY           5
+#define SPI2_IRQ_PRIORITY                8
+#define USART3_IRQ_PRIORITY              8
+#define USB_LP_CAN_RX0_IRQ_PRIORITY      8
+#define RTC_WKUP_IRQ_PRIORITY           10
+#define SYSTICK_IRQ_PRIORITY            15
 
 
 #endif /* __GLOBALS_H */

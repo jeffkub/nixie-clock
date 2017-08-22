@@ -110,7 +110,7 @@ void uart3_init(void)
     HAL_GPIO_Init(GPIOB, &gpio);
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(USART3_IRQn, USART3_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(USART3_IRQn);
 
     /* Disable the UART */

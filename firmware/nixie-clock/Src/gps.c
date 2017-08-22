@@ -244,7 +244,7 @@ void gps_init(void)
     debug_assert(gpsTaskHandle);
 
     /* PPS pin interrupt init */
-    HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(EXTI15_10_IRQn, EXTI15_10_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
     gpsEnable(true);

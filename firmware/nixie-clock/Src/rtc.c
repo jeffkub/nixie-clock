@@ -121,7 +121,7 @@ void rtc_init(void)
     __HAL_RCC_RTC_ENABLE();
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(RTC_WKUP_IRQn, RTC_WKUP_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
 
     UNLOCK_WRITE();
