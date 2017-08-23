@@ -134,7 +134,9 @@ void rtc_init(void)
         while(!READ_BIT(RTC->ISR, RTC_ISR_INITF));
 
         /* Program the prescalar values */
-        WRITE_REG(RTC->PRER, 0x007F00FF);
+        WRITE_REG(RTC->PRER,
+            (PREDIV_A << RTC_PRER_PREDIV_A_Pos) |
+            (PREDIV_S << RTC_PRER_PREDIV_S_Pos));
 
         /* Configure for 24h time */
         CLEAR_BIT(RTC->CR, RTC_CR_FMT);
@@ -214,7 +216,7 @@ void rtc_getTime(struct tm * ts, int * subsec)
 
     if(subsec)
     {
-        *subsec = (int)ssr;
+        *subsec = PREDIV_S - (int)ssr;
     }
 
     return;
@@ -247,7 +249,7 @@ void rtc_getTimeFromISR(struct tm * ts, int * subsec)
 
     if(subsec)
     {
-        *subsec = (int)ssr;
+        *subsec = PREDIV_S - (int)ssr;
     }
 
     return;
@@ -288,7 +290,7 @@ void rtc_setTime(const struct tm * ts)
     return;
 }
 
-void rtc_adjust(uint32_t offset, bool advance)
+void rtc_adjust(int offset)
 {
     uint32_t shiftr;
 
@@ -300,11 +302,21 @@ void rtc_adjust(uint32_t offset, bool advance)
 
     if(READ_BIT(RTC->SSR, 1 << 15))
     {
+        /* Shift operation pending */
         return;
     }
 
-    shiftr = offset & RTC_SHIFTR_SUBFS;
-    shiftr |= advance ? RTC_SHIFTR_ADD1S : 0;
+    if(offset < 0)
+    {
+        /* Subtract a fraction of a second */
+        shiftr = (-offset) & RTC_SHIFTR_SUBFS;
+    }
+    else
+    {
+        /* Add a fraction of a second */
+        shiftr = (PREDIV_S + 1 - offset) & RTC_SHIFTR_SUBFS;
+        shiftr |= RTC_SHIFTR_ADD1S;
+    }
 
     taskENTER_CRITICAL();
     UNLOCK_WRITE();

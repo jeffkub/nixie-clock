@@ -31,9 +31,13 @@ SOFTWARE.
 
 
 /* Definitions ****************************************************************/
+#define PREDIV_A 		127
+#define PREDIV_S 		255
+
+#define SUBSEC_PER_SEC 	(PREDIV_S + 1)
 
 
-/* Public function prototypes ************************************************/
+/* Public function prototypes *************************************************/
 void rtc_init(void);
 
 void rtc_wait(void);
@@ -42,7 +46,7 @@ void rtc_getTime(struct tm * ts, int * subsec);
 void rtc_getTimeFromISR(struct tm * ts, int * subsec);
 void rtc_setTime(const struct tm * ts);
 
-void rtc_adjust(uint32_t offset, bool advance);
+void rtc_adjust(int offset);
 
 
 #endif /* __RTC_H */

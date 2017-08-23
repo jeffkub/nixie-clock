@@ -64,9 +64,10 @@ typedef struct
 
 /* Private variables **********************************************************/
 static osThreadId gpsTaskHandle;
-
 static QueueHandle_t timestampQueue;
 
+static int errorSum = 0;
+static int errorCount = 0;
 
 /* Private function prototypes ************************************************/
 static void gpsEnable(bool state);
@@ -138,19 +139,36 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
     if(rtcTime == gpsTime)
     {
         /* RTC clock is ahead of the GPS clock */
-        //rtc_adjust(subOffset, false);
+        errorSum += rtcTimestamp.subsec;
+        errorCount++;
+
+        debug_printf("subsec = %d\n", rtcTimestamp.subsec);
     }
     else if(rtcTime == (gpsTime - 1))
     {
         /* RTC clock is behind the GPS clock */
-        //rtc_adjust(subOffset, true);
+        errorSum -= (SUBSEC_PER_SEC - rtcTimestamp.subsec);
+        errorCount++;
+
+        debug_printf("subsec = %d\n", -(SUBSEC_PER_SEC - rtcTimestamp.subsec));
     }
     else
     {
         /* RTC clock is out of sync with the GPS clock */
         rtc_setTime(&gpsTimeStruct);
 
+        errorSum = 0;
+        errorCount = 0;
+
         debug_printf("Adjusted RTC clock\n");
+    }
+
+    if(errorCount >= 10)
+    {
+        /* TODO: Adjust time */
+
+        errorSum = 0;
+        errorCount = 0;
     }
 
     return;
