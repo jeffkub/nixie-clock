@@ -90,24 +90,11 @@ void USART3_IRQHandler(void)
 
 void uart3_init(void)
 {
-    GPIO_InitTypeDef gpio;
-
     dev_mutex = xSemaphoreCreateMutex();
     done_sem  = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
-
-    /**USART3 GPIO Configuration
-    PB10     ------> USART3_TX
-    PB11     ------> USART3_RX
-    */
-    gpio.Pin = GPIO_PIN_10|GPIO_PIN_11;
-    gpio.Mode = GPIO_MODE_AF_PP;
-    gpio.Pull = GPIO_PULLUP;
-    gpio.Speed = GPIO_SPEED_FREQ_HIGH;
-    gpio.Alternate = GPIO_AF7_USART3;
-    HAL_GPIO_Init(GPIOB, &gpio);
 
     /* Peripheral interrupt init */
     HAL_NVIC_SetPriority(USART3_IRQn, USART3_IRQ_PRIORITY, 0);

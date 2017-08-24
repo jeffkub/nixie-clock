@@ -47,18 +47,8 @@ SOFTWARE.
 /* Public function definitions ************************************************/
 void pwm_init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
-
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();
-
-    /* GPIO configuration */
-    GPIO_InitStruct.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3;
-    GPIO_InitStruct.Mode  = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull  = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* Timer configuration */
     WRITE_REG(TIMER->CR1, TIM_CR1_ARPE);

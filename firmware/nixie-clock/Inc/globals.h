@@ -69,6 +69,24 @@ SOFTWARE.
 #define HV_EN_Pin               GPIO_PIN_9
 #define HV_EN_GPIO_Port         GPIOB
 
+#define DBG_LED_Pin             GPIO_PIN_0
+#define DBG_LED_GPIO_Port       GPIOA
+
+#define LED_RED_Pin             GPIO_PIN_1
+#define LED_RED_GPIO_Port       GPIOA
+
+#define LED_GRN_Pin             GPIO_PIN_2
+#define LED_GRN_GPIO_Port       GPIOA
+
+#define LED_BLU_Pin             GPIO_PIN_3
+#define LED_BLU_GPIO_Port       GPIOA
+
+#define GPS_RX_Pin              GPIO_PIN_10
+#define GPS_RX_GPIO_Port        GPIOB
+
+#define GPS_TX_Pin              GPIO_PIN_11
+#define GPS_TX_GPIO_Port        GPIOB
+
 /* Interrupt priorities - smaller number is higher priority.  Priorities must be
  * lower (larger) than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
 #define EXTI15_10_IRQ_PRIORITY           5

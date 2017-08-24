@@ -155,6 +155,22 @@ static void gpioInit(void)
     gpio.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPS_PPS_GPIO_Port, &gpio);
 
+    /* TIM2 pin configuration */
+    gpio.Pin       = DBG_LED_Pin | LED_RED_Pin | LED_GRN_Pin | LED_BLU_Pin;
+    gpio.Mode      = GPIO_MODE_AF_PP;
+    gpio.Pull      = GPIO_NOPULL;
+    gpio.Speed     = GPIO_SPEED_FREQ_LOW;
+    gpio.Alternate = GPIO_AF1_TIM2;
+    HAL_GPIO_Init(DBG_LED_GPIO_Port, &gpio);
+
+    /* USART3 pin configuration */
+    gpio.Pin       = GPS_RX_Pin | GPS_TX_Pin;
+    gpio.Mode      = GPIO_MODE_AF_PP;
+    gpio.Pull      = GPIO_PULLUP;
+    gpio.Speed     = GPIO_SPEED_FREQ_HIGH;
+    gpio.Alternate = GPIO_AF7_USART3;
+    HAL_GPIO_Init(GPS_RX_GPIO_Port, &gpio);
+
     return;
 }
 
