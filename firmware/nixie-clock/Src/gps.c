@@ -214,9 +214,6 @@ static void gpsTask(void const * argument)
     char *  dataItems[32];
     ssize_t dataItemsCount;
 
-    /* This task is going to use floating point operations */
-    portTASK_USES_FLOATING_POINT();
-
     for(;;)
     {
         /* Read a sentence from the GPS module */
