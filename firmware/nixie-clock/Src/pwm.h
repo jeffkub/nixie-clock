@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#ifndef __GPS_H
-#define __GPS_H
+#ifndef __PWM_H
+#define __PWM_H
 
 /* Includes *******************************************************************/
 
@@ -32,7 +32,9 @@ SOFTWARE.
 
 
 /* Public function prototypes *************************************************/
-void gps_init(void);
+void pwm_init(void);
+
+int pwm_set(unsigned channel, unsigned value);
 
 
-#endif /* __GPS_H */
+#endif /* __PWM_H */

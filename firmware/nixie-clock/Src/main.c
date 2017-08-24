@@ -29,6 +29,7 @@ SOFTWARE.
 #include "usb_device.h"
 
 #include "debug.h"
+#include "pwm.h"
 #include "uart3.h"
 #include "rtc.h"
 #include "timezone.h"
@@ -41,8 +42,6 @@ SPI_HandleTypeDef hspi2;
 
 
 /* Private variables **********************************************************/
-static TIM_HandleTypeDef htim2;
-
 static osThreadId defaultTaskHandle;
 
 static const timeZoneRule_t timezoneDST =
@@ -56,7 +55,6 @@ static const timeZoneRule_t timezoneSTD =
 static void systemClockConfig(void);
 static void gpioInit(void);
 static void spi2Init(void);
-static void tim2Init(void);
 
 static void mainTask(void const * argument);
 
@@ -180,42 +178,6 @@ static void spi2Init(void)
     return;
 }
 
-static void tim2Init(void)
-{
-    TIM_MasterConfigTypeDef tim_master;
-    TIM_OC_InitTypeDef      tim_oc;
-
-    htim2.Instance               = TIM2;
-    htim2.Init.Prescaler         = 0;
-    htim2.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    htim2.Init.Period            = 0xFFFF;
-    htim2.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
-    htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    HAL_TIM_PWM_Init(&htim2);
-
-    tim_master.MasterOutputTrigger = TIM_TRGO_RESET;
-    tim_master.MasterSlaveMode     = TIM_MASTERSLAVEMODE_DISABLE;
-    HAL_TIMEx_MasterConfigSynchronization(&htim2, &tim_master);
-
-    tim_oc.OCMode     = TIM_OCMODE_PWM1;
-    tim_oc.Pulse      = 0;
-    tim_oc.OCPolarity = TIM_OCPOLARITY_HIGH;
-    tim_oc.OCFastMode = TIM_OCFAST_DISABLE;
-    HAL_TIM_PWM_ConfigChannel(&htim2, &tim_oc, TIM_CHANNEL_1);
-    HAL_TIM_PWM_ConfigChannel(&htim2, &tim_oc, TIM_CHANNEL_2);
-    HAL_TIM_PWM_ConfigChannel(&htim2, &tim_oc, TIM_CHANNEL_3);
-    HAL_TIM_PWM_ConfigChannel(&htim2, &tim_oc, TIM_CHANNEL_4);
-
-    HAL_TIM_MspPostInit(&htim2);
-
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
-
-    return;
-}
-
 static void mainTask(void const * argument)
 {
     int       display[NUM_CNT];
@@ -267,16 +229,16 @@ int main(void)
     /* Initialize all configured peripherals */
     gpioInit();
     spi2Init();
-    tim2Init();
 
+    pwm_init();
     uart3_init();
     rtc_init();
     nixieDriver_init();
     gps_init();
 
-    TIM2->CCR2 = 0x1FF;
-    TIM2->CCR3 = 0x1FF;
-    TIM2->CCR4 = 0x1FF;
+    pwm_set(2, 0x1FF);
+    pwm_set(3, 0x1FF);
+    pwm_set(4, 0x1FF);
 
     osThreadDef(mainTaskDef, mainTask, osPriorityNormal, 0, 128);
     defaultTaskHandle = osThreadCreate(osThread(mainTaskDef), NULL);
