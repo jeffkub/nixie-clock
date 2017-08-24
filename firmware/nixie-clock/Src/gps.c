@@ -27,7 +27,9 @@ SOFTWARE.
 
 #include "globals.h"
 #include "stm32f3xx_hal.h"
-#include "cmsis_os.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
 #include "queue.h"
 
 #include "debug.h"
@@ -65,18 +67,18 @@ typedef struct
 
 
 /* Private variables **********************************************************/
-static osThreadId gpsTaskHandle;
 static QueueHandle_t timestampQueue;
 
 static int errorSum = 0;
 static int errorCount = 0;
+
 
 /* Private function prototypes ************************************************/
 static void gpsEnable(bool state);
 static void syncRtcToGps(timestamp_t * ppsTimestamp, struct tm * gpsDateTime);
 static void handleRMC(char ** dataItems, size_t dataItemsCount);
 static ssize_t splitSentence(char * str, char ** tokvec, size_t tokvecLen);
-static void gpsTask(void const * argument);
+static void gpsTask(void * argument);
 
 
 /* Private function definitions ***********************************************/
@@ -208,7 +210,7 @@ static ssize_t splitSentence(char * str, char ** tokvec, size_t tokvecLen)
     return count;
 }
 
-static void gpsTask(void const * argument)
+static void gpsTask(void * argument)
 {
     char    sentence[128];
     char *  dataItems[32];
@@ -266,9 +268,13 @@ void gps_init(void)
     timestampQueue = xQueueCreate(1, sizeof(timestamp_t));
     debug_assert(timestampQueue);
 
-    osThreadDef(gpsTaskDef, gpsTask, osPriorityNormal, 0, 512);
-    gpsTaskHandle = osThreadCreate(osThread(gpsTaskDef), NULL);
-    debug_assert(gpsTaskHandle);
+    xTaskCreate(
+        gpsTask,
+        "gps",
+        512,
+        NULL,
+        GPS_TASK_PRIORITY,
+        NULL);
 
     /* PPS pin interrupt init */
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, EXTI15_10_IRQ_PRIORITY, 0);

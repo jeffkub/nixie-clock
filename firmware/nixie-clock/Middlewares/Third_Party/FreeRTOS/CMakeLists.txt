@@ -1,19 +1,18 @@
 SET(FREERTOS_INCLUDE_DIRS
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/include
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F
-	PARENT_SCOPE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F
+    PARENT_SCOPE
 )
 
 SET(FREERTOS_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/croutine.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/event_groups.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/list.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/queue.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/tasks.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/timers.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/CMSIS_RTOS/cmsis_os.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/MemMang/heap_4.c
-	${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F/port.c
-	PARENT_SCOPE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/croutine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/event_groups.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/list.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/queue.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/tasks.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/timers.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/MemMang/heap_4.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F/port.c
+    PARENT_SCOPE
 )

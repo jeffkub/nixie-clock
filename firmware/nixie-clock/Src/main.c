@@ -25,8 +25,10 @@ SOFTWARE.
 /* Includes *******************************************************************/
 #include "globals.h"
 #include "stm32f3xx_hal.h"
-#include "cmsis_os.h"
 #include "usb_device.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 #include "debug.h"
 #include "pwm.h"
@@ -42,8 +44,6 @@ SPI_HandleTypeDef hspi2;
 
 
 /* Private variables **********************************************************/
-static osThreadId defaultTaskHandle;
-
 static const timeZoneRule_t timezoneDST =
     { "EDT", Second, Sun, Mar, 2, -4 * 60 };
 
@@ -56,7 +56,7 @@ static void systemClockConfig(void);
 static void gpioInit(void);
 static void spi2Init(void);
 
-static void mainTask(void const * argument);
+static void mainTask(void * argument);
 
 extern void initialise_monitor_handles(void);
 extern void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -178,7 +178,7 @@ static void spi2Init(void)
     return;
 }
 
-static void mainTask(void const * argument)
+static void mainTask(void * argument)
 {
     int       display[NUM_CNT];
     time_t    utcTime;
@@ -240,12 +240,16 @@ int main(void)
     pwm_set(3, 0x1FF);
     pwm_set(4, 0x1FF);
 
-    osThreadDef(mainTaskDef, mainTask, osPriorityNormal, 0, 128);
-    defaultTaskHandle = osThreadCreate(osThread(mainTaskDef), NULL);
-    debug_assert(defaultTaskHandle);
+    xTaskCreate(
+        mainTask,
+        "main",
+        128,
+        NULL,
+        MAIN_TASK_PRIORITY,
+        NULL);
 
     /* Start scheduler */
-    osKernelStart();
+    vTaskStartScheduler();
 
     /* We should never get here as control is now taken by the scheduler */
     return -1;

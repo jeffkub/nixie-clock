@@ -78,5 +78,8 @@ SOFTWARE.
 #define RTC_WKUP_IRQ_PRIORITY           10
 #define SYSTICK_IRQ_PRIORITY            15
 
+/* Task priorities - larger number is higher priority. */
+#define GPS_TASK_PRIORITY                2
+#define MAIN_TASK_PRIORITY               1
 
 #endif /* __GLOBALS_H */
