@@ -61,6 +61,8 @@ typedef struct
     int       subsec;
 } timestamp_t;
 
+#define SUBSEC_SAMPLE_COUNT 10
+
 
 /* Private variables **********************************************************/
 static osThreadId gpsTaskHandle;
@@ -71,6 +73,7 @@ static int errorCount = 0;
 
 /* Private function prototypes ************************************************/
 static void gpsEnable(bool state);
+static void syncRtcToGps(timestamp_t * ppsTimestamp, struct tm * gpsDateTime);
 static void handleRMC(char ** dataItems, size_t dataItemsCount);
 static ssize_t splitSentence(char * str, char ** tokvec, size_t tokvecLen);
 static void gpsTask(void const * argument);
@@ -89,12 +92,60 @@ static void gpsEnable(bool state)
     }
 }
 
+static void syncRtcToGps(timestamp_t * ppsTimestamp, struct tm * gpsDateTime)
+{
+    time_t ppsTime;
+    time_t gpsTime;
+    int    error;
+
+    ppsTime = mktime(&ppsTimestamp->dateTime);
+    gpsTime = mktime(gpsDateTime);
+
+    /* Adjust local time to match GPS time */
+    if(ppsTime == gpsTime)
+    {
+        /* RTC clock is ahead of the GPS clock */
+        errorSum += ppsTimestamp->subsec;
+        errorCount++;
+    }
+    else if(ppsTime == (gpsTime - 1))
+    {
+        /* RTC clock is behind the GPS clock */
+        errorSum -= (SUBSEC_PER_SEC - ppsTimestamp->subsec);
+        errorCount++;
+    }
+    else
+    {
+        /* RTC clock is out of sync with the GPS clock */
+        rtc_setTime(gpsDateTime);
+
+        /* Reset error counters */
+        errorSum = 0;
+        errorCount = 0;
+
+        debug_printf("Set the RTC clock: ppsTime=%u subsec=%d gpsTime=%u\n",
+            (unsigned)ppsTime, ppsTimestamp->subsec, (unsigned)gpsTime);
+    }
+
+    if(errorCount >= SUBSEC_SAMPLE_COUNT)
+    {
+        error = errorSum / SUBSEC_SAMPLE_COUNT;
+
+        rtc_adjust(-error);
+
+        debug_printf("Adjusted RTC clock: error=%d\n", error);
+
+        errorSum = 0;
+        errorCount = 0;
+    }
+
+    return;
+}
+
 static void handleRMC(char ** dataItems, size_t dataItemsCount)
 {
-    timestamp_t rtcTimestamp;
-    time_t      rtcTime;
-    struct tm   gpsTimeStruct = {0};
-    time_t      gpsTime;
+    struct tm   gpsDateTime = {0};
+    timestamp_t ppsTimestamp;
 
     /* Parse time from GPS sentence */
     if(dataItemsCount < GPRMC_Count)
@@ -102,74 +153,35 @@ static void handleRMC(char ** dataItems, size_t dataItemsCount)
         return;
     }
 
-    /* Verify GPS data is valid (GPS lock) */
     if(strcmp(dataItems[GPRMC_Status], "A") != 0)
     {
+        /* GPS not locked */
         return;
     }
 
     if(sscanf(dataItems[GPRMC_UTCTime], "%02d%02d%02d",
-        &gpsTimeStruct.tm_hour, &gpsTimeStruct.tm_min, &gpsTimeStruct.tm_sec) != 3)
+        &gpsDateTime.tm_hour, &gpsDateTime.tm_min, &gpsDateTime.tm_sec) != 3)
     {
         return;
     }
 
     if(sscanf(dataItems[GPRMC_Date], "%02d%02d%02d",
-        &gpsTimeStruct.tm_mday, &gpsTimeStruct.tm_mon, &gpsTimeStruct.tm_year) != 3)
+        &gpsDateTime.tm_mday, &gpsDateTime.tm_mon, &gpsDateTime.tm_year) != 3)
     {
         return;
     }
 
-    gpsTimeStruct.tm_mon  -= 1;
-    gpsTimeStruct.tm_year += 100;
-
-    gpsTime = mktime(&gpsTimeStruct);
+    gpsDateTime.tm_mon  -= 1;
+    gpsDateTime.tm_year += 100;
 
     /* Get RTC timestamp when the PPS signal was asserted */
-    if(xQueueReceive(timestampQueue, &rtcTimestamp, 0) == pdFALSE)
+    if(xQueueReceive(timestampQueue, &ppsTimestamp, 0) == pdFALSE)
     {
+        /* No RTC timestamp was found */
         return;
     }
 
-    rtcTime = mktime(&rtcTimestamp.dateTime);
-
-    //debug_printf("rtcTime=%d, gpsTime=%d\n", (int)rtcTime, (int)gpsTime);
-
-    /* Adjust local time to match GPS time */
-    if(rtcTime == gpsTime)
-    {
-        /* RTC clock is ahead of the GPS clock */
-        errorSum += rtcTimestamp.subsec;
-        errorCount++;
-
-        debug_printf("subsec = %d\n", rtcTimestamp.subsec);
-    }
-    else if(rtcTime == (gpsTime - 1))
-    {
-        /* RTC clock is behind the GPS clock */
-        errorSum -= (SUBSEC_PER_SEC - rtcTimestamp.subsec);
-        errorCount++;
-
-        debug_printf("subsec = %d\n", -(SUBSEC_PER_SEC - rtcTimestamp.subsec));
-    }
-    else
-    {
-        /* RTC clock is out of sync with the GPS clock */
-        rtc_setTime(&gpsTimeStruct);
-
-        errorSum = 0;
-        errorCount = 0;
-
-        debug_printf("Adjusted RTC clock\n");
-    }
-
-    if(errorCount >= 10)
-    {
-        /* TODO: Adjust time */
-
-        errorSum = 0;
-        errorCount = 0;
-    }
+    syncRtcToGps(&ppsTimestamp, &gpsDateTime);
 
     return;
 }
