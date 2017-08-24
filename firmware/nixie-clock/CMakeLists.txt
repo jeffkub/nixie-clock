@@ -50,6 +50,7 @@ SET(PROJECT_SOURCES
     Src/nixieDriver.c
     Src/pwm.c
     Src/rtc.c
+    Src/spi.c
     Src/stm32f3xx_hal_msp.c
     Src/stm32f3xx_it.c
     Src/timezone.c
