@@ -39,36 +39,6 @@ SOFTWARE.
 /* Definitions ****************************************************************/
 
 /* GPIO pin definitions */
-#define PB3_Pin                 GPIO_PIN_4
-#define PB3_GPIO_Port           GPIOA
-
-#define PB2_Pin                 GPIO_PIN_5
-#define PB2_GPIO_Port           GPIOA
-
-#define PB1_Pin                 GPIO_PIN_6
-#define PB1_GPIO_Port           GPIOA
-
-#define GPS_RESET_Pin           GPIO_PIN_2
-#define GPS_RESET_GPIO_Port     GPIOB
-
-#define GPS_PPS_Pin             GPIO_PIN_13
-#define GPS_PPS_GPIO_Port       GPIOC
-
-#define DISP_LE_Pin             GPIO_PIN_14
-#define DISP_LE_GPIO_Port       GPIOB
-
-#define DISP_BL_Pin             GPIO_PIN_8
-#define DISP_BL_GPIO_Port       GPIOA
-
-#define USB_VBUS_Pin            GPIO_PIN_10
-#define USB_VBUS_GPIO_Port      GPIOA
-
-#define PB4_Pin                 GPIO_PIN_6
-#define PB4_GPIO_Port           GPIOB
-
-#define HV_EN_Pin               GPIO_PIN_9
-#define HV_EN_GPIO_Port         GPIOB
-
 #define DBG_LED_Pin             GPIO_PIN_0
 #define DBG_LED_GPIO_Port       GPIOA
 
@@ -81,11 +51,47 @@ SOFTWARE.
 #define LED_BLU_Pin             GPIO_PIN_3
 #define LED_BLU_GPIO_Port       GPIOA
 
+#define PB1_Pin                 GPIO_PIN_6
+#define PB1_GPIO_Port           GPIOA
+
+#define PB2_Pin                 GPIO_PIN_5
+#define PB2_GPIO_Port           GPIOA
+
+#define PB3_Pin                 GPIO_PIN_4
+#define PB3_GPIO_Port           GPIOA
+
+#define PB4_Pin                 GPIO_PIN_6
+#define PB4_GPIO_Port           GPIOB
+
+#define GPS_RESET_Pin           GPIO_PIN_2
+#define GPS_RESET_GPIO_Port     GPIOB
+
+#define GPS_PPS_Pin             GPIO_PIN_13
+#define GPS_PPS_GPIO_Port       GPIOC
+
 #define GPS_RX_Pin              GPIO_PIN_10
 #define GPS_RX_GPIO_Port        GPIOB
 
 #define GPS_TX_Pin              GPIO_PIN_11
 #define GPS_TX_GPIO_Port        GPIOB
+
+#define DISP_LE_Pin             GPIO_PIN_14
+#define DISP_LE_GPIO_Port       GPIOB
+
+#define DISP_BL_Pin             GPIO_PIN_8
+#define DISP_BL_GPIO_Port       GPIOA
+
+#define DISP_CLK_Pin            GPIO_PIN_13
+#define DISP_CLK_GPIO_Port      GPIOB
+
+#define DISP_DATA_Pin           GPIO_PIN_15
+#define DISP_DATA_GPIO_Port     GPIOB
+
+#define USB_VBUS_Pin            GPIO_PIN_10
+#define USB_VBUS_GPIO_Port      GPIOA
+
+#define HV_EN_Pin               GPIO_PIN_9
+#define HV_EN_GPIO_Port         GPIOB
 
 /* Interrupt priorities - smaller number is higher priority.  Priorities must be
  * lower (larger) than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */

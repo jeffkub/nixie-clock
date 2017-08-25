@@ -55,7 +55,6 @@ static const timeZoneRule_t timezoneSTD =
 /* Private function prototypes ************************************************/
 static void systemClockConfig(void);
 static void gpioInit(void);
-static void spi2Init(void);
 
 static void mainTask(void * argument);
 
@@ -163,6 +162,14 @@ static void gpioInit(void)
     gpio.Alternate = GPIO_AF1_TIM2;
     HAL_GPIO_Init(DBG_LED_GPIO_Port, &gpio);
 
+    /* SPI2 pin configuration */
+    gpio.Pin       = DISP_CLK_Pin | DISP_DATA_Pin;
+    gpio.Mode      = GPIO_MODE_AF_PP;
+    gpio.Pull      = GPIO_NOPULL;
+    gpio.Speed     = GPIO_SPEED_FREQ_HIGH;
+    gpio.Alternate = GPIO_AF5_SPI2;
+    HAL_GPIO_Init(DISP_CLK_GPIO_Port, &gpio);
+
     /* USART3 pin configuration */
     gpio.Pin       = GPS_RX_Pin | GPS_TX_Pin;
     gpio.Mode      = GPIO_MODE_AF_PP;
@@ -173,7 +180,7 @@ static void gpioInit(void)
 
     return;
 }
-
+#if 0
 static void spi2Init(void)
 {
     hspi2.Instance               = SPI2;
@@ -194,7 +201,7 @@ static void spi2Init(void)
 
     return;
 }
-
+#endif
 static void mainTask(void * argument)
 {
     int       display[NUM_CNT];
@@ -245,7 +252,6 @@ int main(void)
 
     /* Initialize all configured peripherals */
     gpioInit();
-    spi2Init();
 
     pwm_init();
     spi_init();

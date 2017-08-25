@@ -41,7 +41,6 @@
 
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
-extern SPI_HandleTypeDef hspi2;
 
 extern void xPortSysTickHandler(void);
 
@@ -176,19 +175,6 @@ void USB_LP_CAN_RX0_IRQHandler(void)
   /* USER CODE END USB_LP_CAN_RX0_IRQn 1 */
 }
 #endif
-/**
-* @brief This function handles SPI2 global interrupt.
-*/
-void SPI2_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI2_IRQn 0 */
-
-  /* USER CODE END SPI2_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi2);
-  /* USER CODE BEGIN SPI2_IRQn 1 */
-
-  /* USER CODE END SPI2_IRQn 1 */
-}
 
 /* USER CODE BEGIN 1 */
 

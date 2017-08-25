@@ -42,7 +42,19 @@ SOFTWARE.
 
 
 /* Public function definitions ************************************************/
+void SPI2_IRQHandler(void)
+{
+	return;
+}
+
 void spi_init(void)
 {
+    /* Peripheral clock enable */
+    __HAL_RCC_SPI2_CLK_ENABLE();
+
+    /* Peripheral interrupt init */
+    HAL_NVIC_SetPriority(SPI2_IRQn, SPI2_IRQ_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(SPI2_IRQn);
+
     return;
 }
