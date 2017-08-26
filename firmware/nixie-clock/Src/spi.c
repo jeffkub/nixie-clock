@@ -30,7 +30,7 @@ SOFTWARE.
 
 
 /* Private definitions ********************************************************/
-
+#define SPIDEV SPI2
 
 /* Private variables **********************************************************/
 
@@ -55,6 +55,11 @@ void spi_init(void)
     /* Peripheral interrupt init */
     HAL_NVIC_SetPriority(SPI2_IRQn, SPI2_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(SPI2_IRQn);
+
+    /* SPI configuration */
+    WRITE_REG(SPIDEV->CR1,
+    	SPI_CR1_LSBFIRST | (7 << SPI_CR1_BR_Pos) | SPI_CR1_MSTR |
+    	SPI_CR1_CPOL | SPI_CR1_CPHA);
 
     return;
 }

@@ -38,7 +38,6 @@ SOFTWARE.
 
 
 /* Global variables ***********************************************************/
-extern SPI_HandleTypeDef hspi2;
 
 
 /* Private definitions ********************************************************/
@@ -130,6 +129,7 @@ static void clrbit(void* addr, unsigned int cnt)
 
 static void spiTransmit(const void* data, size_t len)
 {
+#if 0
     /* Start transmit */
     if(HAL_SPI_Transmit_IT(&hspi2, (uint8_t*)data, len) != HAL_OK)
     {
@@ -137,7 +137,7 @@ static void spiTransmit(const void* data, size_t len)
 
         return;
     }
-
+#endif
     /* Wait for transmit to complete */
     xSemaphoreTake(done_sem, portMAX_DELAY);
 
