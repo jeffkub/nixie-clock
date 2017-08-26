@@ -30,11 +30,11 @@ SOFTWARE.
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "task.h"
-#include "semphr.h"
 
 #include "debug.h"
 #include "stm32f3xx_hal.h"
-#include "stm32f3xx_hal_spi.h"
+
+#include "spi.h"
 
 
 /* Global variables ***********************************************************/
@@ -61,9 +61,6 @@ static const uint8_t m_nixieBitmap[TUBE_CNT][DIGIT_CNT] =
     { 56, 55, 54, 43, 42, 41, 40, 39, 58, 57 }
 };
 
-static SemaphoreHandle_t dev_mutex;
-static SemaphoreHandle_t done_sem;
-
 
 /* Private function prototypes ************************************************/
 static void hvEnable(bool state);
@@ -71,7 +68,6 @@ static void dispEnable(bool state);
 static void latchEnable(bool state);
 
 static void clrbit(void* addr, unsigned int cnt);
-static void spiTransmit(const void* data, size_t len);
 
 
 /* Private function definitions ***********************************************/
@@ -127,41 +123,10 @@ static void clrbit(void* addr, unsigned int cnt)
     return;
 }
 
-static void spiTransmit(const void* data, size_t len)
-{
-#if 0
-    /* Start transmit */
-    if(HAL_SPI_Transmit_IT(&hspi2, (uint8_t*)data, len) != HAL_OK)
-    {
-        debug_printf("SPI transmit failed\n");
-
-        return;
-    }
-#endif
-    /* Wait for transmit to complete */
-    xSemaphoreTake(done_sem, portMAX_DELAY);
-
-    return;
-}
-
 
 /* Public function definitions ************************************************/
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-    BaseType_t taskWoken;
-
-    xSemaphoreGiveFromISR(done_sem, &taskWoken);
-
-    portYIELD_FROM_ISR(taskWoken);
-
-    return;
-}
-
 void nixieDriver_init(void)
 {
-    dev_mutex = xSemaphoreCreateMutex();
-    done_sem  = xSemaphoreCreateBinary();
-
     hvEnable(true);
     dispEnable(false);
 
@@ -174,8 +139,6 @@ void nixieDriver_set(int* vals)
     uint8_t bitmask[SHIFT_BYTES];
     int     tensDigit;
     int     onesDigit;
-
-    xSemaphoreTake(dev_mutex, portMAX_DELAY);
 
     memset(bitmask, 0xFF, sizeof(bitmask));
 
@@ -197,7 +160,7 @@ void nixieDriver_set(int* vals)
 
     vTaskDelay(2);
 
-    spiTransmit(bitmask, SHIFT_BYTES);
+    spi_tx(bitmask, SHIFT_BYTES);
 
     vTaskDelay(2);
 
@@ -206,8 +169,6 @@ void nixieDriver_set(int* vals)
     vTaskDelay(2);
 
     dispEnable(true);
-
-    xSemaphoreGive(dev_mutex);
 
     return;
 }

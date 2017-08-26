@@ -26,6 +26,7 @@ SOFTWARE.
 #define __SPI_H
 
 /* Includes *******************************************************************/
+#include <sys/types.h>
 
 
 /* Definitions ****************************************************************/
@@ -34,5 +35,6 @@ SOFTWARE.
 /* Public function prototypes *************************************************/
 void spi_init(void);
 
+int spi_tx(const void * data, size_t len);
 
 #endif /* __SPI_H */
