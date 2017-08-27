@@ -66,7 +66,7 @@ void SPI2_IRQHandler(void)
     BaseType_t task_woken = pdFALSE;
     char read;
 
-    while(READ_BIT(SPIDEV->SR, SPI_SR_RXNE))
+    while(READ_BIT(SPIDEV->SR, SPI_SR_RXNE) && (xfer.rxOffset < xfer.len))
     {
         read = SPIDEV->DR;
 
@@ -76,26 +76,26 @@ void SPI2_IRQHandler(void)
         }
 
         xfer.rxOffset++;
-
-        if(xfer.rxOffset >= xfer.len)
-        {
-            /* Transfer complete */
-            CLEAR_BIT(SPIDEV->CR2, SPI_CR2_RXNEIE);
-
-            xSemaphoreGiveFromISR(doneSem, &task_woken);
-        }
     }
 
-    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE))
+    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
     {
         SPIDEV->DR = xfer.txData[xfer.txOffset];
         xfer.txOffset++;
+    }
 
-        if(xfer.txOffset >= xfer.len)
-        {
-            /* Transmit complete */
-            CLEAR_BIT(SPIDEV->CR2, SPI_CR2_TXEIE);
-        }
+    if(xfer.txOffset >= xfer.len)
+    {
+        /* Transmit complete */
+        CLEAR_BIT(SPIDEV->CR2, SPI_CR2_TXEIE);
+    }
+
+    if(xfer.rxOffset >= xfer.len)
+    {
+        /* Transfer complete */
+        CLEAR_BIT(SPIDEV->CR2, SPI_CR2_RXNEIE);
+
+        xSemaphoreGiveFromISR(doneSem, &task_woken);
     }
 
     portYIELD_FROM_ISR(task_woken);
@@ -145,7 +145,7 @@ int spi_tx(const void * data, size_t len)
     xfer.rxOffset = 0;
 
     /* Fill TX FIFO */
-    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE))
+    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
     {
         SPIDEV->DR = xfer.txData[xfer.txOffset];
         xfer.txOffset++;
