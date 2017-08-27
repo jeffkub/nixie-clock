@@ -156,17 +156,19 @@ void nixieDriver_set(int* vals)
         clrbit(bitmask, m_nixieBitmap[index*2 + 1][onesDigit]);
     }
 
+    vTaskDelay(1);
+
     latchEnable(false);
 
-    vTaskDelay(2);
+    vTaskDelay(1);
 
     spi_tx(bitmask, SHIFT_BYTES);
 
-    vTaskDelay(2);
+    vTaskDelay(1);
 
     latchEnable(true);
 
-    vTaskDelay(2);
+    vTaskDelay(1);
 
     dispEnable(true);
 

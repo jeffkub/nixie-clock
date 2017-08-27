@@ -53,6 +53,7 @@ static void systemClockConfig(void);
 static void gpioInit(void);
 
 static void mainTask(void * argument);
+static void ledTask(void * argument);
 
 extern void initialise_monitor_handles(void);
 extern void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -95,7 +96,7 @@ static void systemClockConfig(void)
     HAL_RCCEx_PeriphCLKConfig(&periph_clk);
 
     /* Configure the Systick interrupt time */
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/configTICK_RATE_HZ);
 
     /* Configure the Systick */
     HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
@@ -209,10 +210,48 @@ static void mainTask(void * argument)
     }
 }
 
+static void ledTask(void * argument)
+{
+    int  intensity = 0;
+    bool increasing = true;
+
+    while(true)
+    {
+        pwm_wait();
+
+        if(increasing)
+        {
+            intensity += 10;
+
+            if(intensity >= 0xFFF)
+            {
+                intensity = 0xFFF;
+                increasing = false;
+            }
+        }
+        else
+        {
+            intensity -= 10;
+
+            if(intensity <= 0)
+            {
+                intensity = 0;
+                increasing = true;
+            }
+        }
+
+        pwm_set(2, intensity);
+        pwm_set(3, intensity);
+        pwm_set(4, intensity);
+    }
+}
+
 
 /* Public function definitions ************************************************/
 int main(void)
 {
+    BaseType_t status;
+
 #if DEBUG
     initialise_monitor_handles();
 #endif /* DEBUG */
@@ -239,13 +278,23 @@ int main(void)
     pwm_set(3, 0x1FF);
     pwm_set(4, 0x1FF);
 
-    xTaskCreate(
+    status = xTaskCreate(
         mainTask,
         "main",
         128,
         NULL,
         MAIN_TASK_PRIORITY,
         NULL);
+    debug_assert(status);
+
+    status = xTaskCreate(
+        ledTask,
+        "led",
+        128,
+        NULL,
+        LED_TASK_PRIORITY,
+        NULL);
+    debug_assert(status);
 
     /* Start scheduler */
     vTaskStartScheduler();

@@ -104,6 +104,7 @@ SOFTWARE.
 #define SYSTICK_IRQ_PRIORITY            15
 
 /* Task priorities - larger number is higher priority. */
+#define LED_TASK_PRIORITY                3
 #define GPS_TASK_PRIORITY                2
 #define MAIN_TASK_PRIORITY               1
 
