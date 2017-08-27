@@ -27,6 +27,7 @@ SOFTWARE.
 
 #include "globals.h"
 
+#include "debug.h"
 #include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "portmacro.h"
@@ -42,7 +43,7 @@ SOFTWARE.
 
 
 /* Private variables **********************************************************/
-static SemaphoreHandle_t wakeup_sem;
+static SemaphoreHandle_t wakeupSem;
 
 
 /* Private function prototypes ************************************************/
@@ -105,7 +106,7 @@ void RTC_WKUP_IRQHandler(void)
         CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
         WRITE_REG(EXTI->PR, RTC_EXTI_LINE_WAKEUPTIMER_EVENT);
 
-        xSemaphoreGiveFromISR(wakeup_sem, &taskWoken);
+        xSemaphoreGiveFromISR(wakeupSem, &taskWoken);
     }
 
     portYIELD_FROM_ISR(taskWoken);
@@ -115,7 +116,8 @@ void RTC_WKUP_IRQHandler(void)
 
 void rtc_init(void)
 {
-    wakeup_sem = xSemaphoreCreateBinary();
+    wakeupSem = xSemaphoreCreateBinary();
+    debug_assert(wakeupSem);
 
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();
@@ -185,7 +187,7 @@ void rtc_init(void)
 
 void rtc_wait(void)
 {
-    xSemaphoreTake(wakeup_sem, portMAX_DELAY);
+    xSemaphoreTake(wakeupSem, portMAX_DELAY);
 
     return;
 }

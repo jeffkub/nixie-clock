@@ -26,7 +26,7 @@ SOFTWARE.
 #include "uart.h"
 
 #include "globals.h"
-
+#include "debug.h"
 #include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "portmacro.h"
@@ -92,8 +92,11 @@ void USART3_IRQHandler(void)
 
 void uart_init(void)
 {
-    mutex    = xSemaphoreCreateMutex();
+    mutex = xSemaphoreCreateMutex();
+    debug_assert(mutex);
+
     rxActSem = xSemaphoreCreateBinary();
+    debug_assert(rxActSem);
 
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();

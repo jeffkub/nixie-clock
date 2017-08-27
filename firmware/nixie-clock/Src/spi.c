@@ -26,6 +26,7 @@ SOFTWARE.
 #include "spi.h"
 
 #include "globals.h"
+#include "debug.h"
 #include "stm32f3xx_hal.h"
 
 #include "FreeRTOS.h"
@@ -105,8 +106,11 @@ void SPI2_IRQHandler(void)
 
 void spi_init(void)
 {
-    mutex   = xSemaphoreCreateMutex();
+    mutex = xSemaphoreCreateMutex();
+    debug_assert(mutex);
+
     doneSem = xSemaphoreCreateBinary();
+    debug_assert(doneSem);
 
     /* Peripheral clock enable */
     __HAL_RCC_SPI2_CLK_ENABLE();

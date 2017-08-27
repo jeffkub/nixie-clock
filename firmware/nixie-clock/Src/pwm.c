@@ -26,6 +26,7 @@ SOFTWARE.
 #include "pwm.h"
 
 #include "globals.h"
+#include "debug.h"
 #include "stm32f3xx_hal.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -71,6 +72,7 @@ void TIM2_IRQHandler(void)
 void pwm_init(void)
 {
     timerSem = xSemaphoreCreateBinary();
+    debug_assert(timerSem);
 
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();
