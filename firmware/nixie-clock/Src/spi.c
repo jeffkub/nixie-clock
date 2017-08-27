@@ -37,13 +37,13 @@ SOFTWARE.
 
 typedef struct spiTransfer
 {
-    size_t len;
+    size_t    len;
 
-    char * txData;
-    size_t txOffset;
+    uint8_t * txData;
+    size_t    txOffset;
 
-    char * rxData;
-    size_t rxOffset;
+    uint8_t * rxData;
+    size_t    rxOffset;
 } spiTransfer_t;
 
 
@@ -64,11 +64,11 @@ static spiTransfer_t xfer;
 void SPI2_IRQHandler(void)
 {
     BaseType_t task_woken = pdFALSE;
-    char read;
+    uint8_t read;
 
     while(READ_BIT(SPIDEV->SR, SPI_SR_RXNE) && (xfer.rxOffset < xfer.len))
     {
-        read = SPIDEV->DR;
+        read = *(__IO uint8_t *)&SPIDEV->DR;
 
         if(xfer.rxData)
         {
@@ -80,7 +80,7 @@ void SPI2_IRQHandler(void)
 
     while(READ_BIT(SPIDEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
     {
-        SPIDEV->DR = xfer.txData[xfer.txOffset];
+        *(__IO uint8_t *)&SPIDEV->DR = xfer.txData[xfer.txOffset];
         xfer.txOffset++;
     }
 
@@ -139,17 +139,10 @@ int spi_tx(const void * data, size_t len)
 
     /* Prepare SPI transfer */
     xfer.len      = len;
-    xfer.txData   = (char *)data;
+    xfer.txData   = (uint8_t *)data;
     xfer.txOffset = 0;
     xfer.rxData   = NULL;
     xfer.rxOffset = 0;
-
-    /* Fill TX FIFO */
-    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
-    {
-        SPIDEV->DR = xfer.txData[xfer.txOffset];
-        xfer.txOffset++;
-    }
 
     /* Enable interrupts */
     SET_BIT(SPIDEV->CR2, SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
