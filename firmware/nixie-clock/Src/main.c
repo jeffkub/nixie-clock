@@ -40,10 +40,6 @@ SOFTWARE.
 #include "nixieDriver.h"
 
 
-/* Global variables ***********************************************************/
-SPI_HandleTypeDef hspi2;
-
-
 /* Private variables **********************************************************/
 static const timeZoneRule_t timezoneDST =
     { "EDT", Second, Sun, Mar, 2, -4 * 60 };
@@ -180,35 +176,14 @@ static void gpioInit(void)
 
     return;
 }
-#if 0
-static void spi2Init(void)
-{
-    hspi2.Instance               = SPI2;
-    hspi2.Init.Mode              = SPI_MODE_MASTER;
-    hspi2.Init.Direction         = SPI_DIRECTION_2LINES;
-    hspi2.Init.DataSize          = SPI_DATASIZE_8BIT;
-    hspi2.Init.CLKPolarity       = SPI_POLARITY_HIGH;
-    hspi2.Init.CLKPhase          = SPI_PHASE_2EDGE;
-    hspi2.Init.NSS               = SPI_NSS_SOFT;
-    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
-    hspi2.Init.FirstBit          = SPI_FIRSTBIT_LSB;
-    hspi2.Init.TIMode            = SPI_TIMODE_DISABLE;
-    hspi2.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
-    hspi2.Init.CRCPolynomial     = 7;
-    hspi2.Init.CRCLength         = SPI_CRC_LENGTH_DATASIZE;
-    hspi2.Init.NSSPMode          = SPI_NSS_PULSE_DISABLE;
-    HAL_SPI_Init(&hspi2);
 
-    return;
-}
-#endif
 static void mainTask(void * argument)
 {
     int       display[NUM_CNT];
     time_t    utcTime;
-    struct tm utcTimeStruct = {0};
+    struct tm utcDateTime = {0};
     time_t    localTime;
-    struct tm localTimeStruct = {0};
+    struct tm localDateTime = {0};
 
     //MX_USB_DEVICE_Init();
 
@@ -217,16 +192,16 @@ static void mainTask(void * argument)
     while(true)
     {
         /* Determine current time */
-        rtc_getTime(&utcTimeStruct, NULL);
-        utcTime = mktime(&utcTimeStruct);
+        rtc_getTime(&utcDateTime, NULL);
+        utcTime = mktime(&utcDateTime);
 
         localTime = timezone_toLocal(utcTime);
-        localtime_r(&localTime, &localTimeStruct);
+        localtime_r(&localTime, &localDateTime);
 
         /* Update nixie tube digits */
-        display[0] = localTimeStruct.tm_hour;
-        display[1] = localTimeStruct.tm_min;
-        display[2] = localTimeStruct.tm_sec;
+        display[0] = localDateTime.tm_hour;
+        display[1] = localDateTime.tm_min;
+        display[2] = localDateTime.tm_sec;
         nixieDriver_set(display);
 
         /* Wait for second to increment */
