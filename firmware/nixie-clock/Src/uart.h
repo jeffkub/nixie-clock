@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#ifndef __UART3_H
-#define __UART3_H
+#ifndef __UART_H
+#define __UART_H
 
 /* Includes *******************************************************************/
 #include <sys/types.h>
@@ -33,10 +33,10 @@ SOFTWARE.
 
 
 /* Public function prototypes ************************************************/
-void uart3_init(void);
+void uart_init(void);
 
-ssize_t uart3_read(void * buf, size_t nbyte);
-char *  uart3_gets(char * str, size_t maxlen);
+ssize_t uart_read(void * buf, size_t nbyte);
+char *  uart_gets(char * str, size_t maxlen);
 
 
-#endif /* __UART3_H */
+#endif /* __UART_H */

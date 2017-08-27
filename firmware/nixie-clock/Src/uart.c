@@ -23,7 +23,7 @@ SOFTWARE.
 *******************************************************************************/
 
 /* Includes *******************************************************************/
-#include "uart3.h"
+#include "uart.h"
 
 #include "globals.h"
 
@@ -34,18 +34,20 @@ SOFTWARE.
 
 
 /* Private definitions ********************************************************/
-#define UART_INST USART3
+#define UART_DEV    USART3
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
 
-#define BUFFER_SIZE 256
+#define BUF_SIZE    256
+#define BUF_MASK    (BUF_SIZE-1)
+#define BUF_IDX(x)  ((x) & BUF_MASK)
 
 
 /* Private variables **********************************************************/
-static SemaphoreHandle_t dev_mutex;
-static SemaphoreHandle_t done_sem;
+static SemaphoreHandle_t mutex;
+static SemaphoreHandle_t rxActSem;
 
-static char   rxBuf[BUFFER_SIZE];
+static char   rxBuf[BUF_SIZE];
 static size_t rxBufReadPtr  = 0;
 static size_t rxBufWritePtr = 0;
 
@@ -64,34 +66,34 @@ void USART3_IRQHandler(void)
     uint32_t   data;
 
     /* Read interrupt flags */
-    isr_flags = READ_REG(UART_INST->ISR);
+    isr_flags = READ_REG(UART_DEV->ISR);
 
     /* RX interrupt */
     if(isr_flags & USART_ISR_RXNE)
     {
-        data = (char) READ_REG(UART_INST->RDR);
+        data = (char) READ_REG(UART_DEV->RDR);
 
-        if((rxBufWritePtr - rxBufReadPtr) < BUFFER_SIZE)
+        if((rxBufWritePtr - rxBufReadPtr) < BUF_SIZE)
         {
-            rxBuf[rxBufWritePtr % BUFFER_SIZE] = data;
+            rxBuf[BUF_IDX(rxBufWritePtr)] = data;
             rxBufWritePtr++;
         }
 
-        xSemaphoreGiveFromISR(done_sem, &task_woken);
+        xSemaphoreGiveFromISR(rxActSem, &task_woken);
     }
 
     /* Acknowledge interrupts */
-    WRITE_REG(UART_INST->ICR, isr_flags);
+    WRITE_REG(UART_DEV->ICR, isr_flags);
 
     portYIELD_FROM_ISR(task_woken);
 
     return;
 }
 
-void uart3_init(void)
+void uart_init(void)
 {
-    dev_mutex = xSemaphoreCreateMutex();
-    done_sem  = xSemaphoreCreateBinary();
+    mutex    = xSemaphoreCreateMutex();
+    rxActSem = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
@@ -100,51 +102,23 @@ void uart3_init(void)
     HAL_NVIC_SetPriority(USART3_IRQn, USART3_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(USART3_IRQn);
 
-    /* Disable the UART */
-    CLEAR_BIT(UART_INST->CR1, USART_CR1_UE);
+    /* UART configuration */
+    WRITE_REG(UART_DEV->CR1, USART_CR1_TE | USART_CR1_RE);
 
-    /* 8-bit word length, no parity */
-    CLEAR_BIT(UART_INST->CR1, USART_CR1_M1 | USART_CR1_M0 | USART_CR1_PCE | USART_CR1_PS);
+    WRITE_REG(UART_DEV->CR2, 0);
 
-    /* Enable TX and RX */
-    SET_BIT(UART_INST->CR1, USART_CR1_TE | USART_CR1_RE);
+    WRITE_REG(UART_DEV->BRR, UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(), 9600));
 
-    /* 1 stop bit */
-    CLEAR_BIT(UART_INST->CR2, USART_CR2_STOP_1 | USART_CR2_STOP_0);
-
-    /* Set the baud rate */
-    UART_INST->BRR = (uint16_t)(UART_DIV_SAMPLING16(HAL_RCC_GetPCLK1Freq(), 9600));
+    /* Enable UART peripheral */
+    SET_BIT(UART_DEV->CR1, USART_CR1_UE);
 
     /* Enable RX interrupt */
-    CLEAR_BIT(UART_INST->CR1, USART_CR1_TXEIE);
-    SET_BIT(UART_INST->CR1, USART_CR1_RXNEIE);
-
-    /* Enable the UART */
-    SET_BIT(UART_INST->CR1, USART_CR1_UE);
+    SET_BIT(UART_DEV->CR1, USART_CR1_RXNEIE);
 
     return;
 }
 
-ssize_t uart3_read(void * buf, size_t nbyte)
-{
-    ssize_t read;
-
-    for(read = 0; read < nbyte; read++)
-    {
-        /* Wait for character to read */
-        while(rxBufReadPtr == rxBufWritePtr)
-        {
-            xSemaphoreTake(done_sem, portMAX_DELAY);
-        }
-
-        ((char*)buf)[read] = rxBuf[rxBufReadPtr % BUFFER_SIZE];
-        rxBufReadPtr++;
-    }
-
-    return read;
-}
-
-char * uart3_gets(char * str, size_t maxlen)
+char * uart_gets(char * str, size_t maxlen)
 {
     size_t read = 0;
 
@@ -153,20 +127,24 @@ char * uart3_gets(char * str, size_t maxlen)
         return NULL;
     }
 
+    xSemaphoreTake(mutex, portMAX_DELAY);
+
     while(read < (maxlen - 1)) /* -1 for NULL char */
     {
-        if(uart3_read(&str[read], 1) < 0)
+        while(rxBufReadPtr == rxBufWritePtr)
         {
-            /* Read error */
-            return NULL;
+            xSemaphoreTake(rxActSem, portMAX_DELAY);
         }
+
+        str[read] = rxBuf[BUF_IDX(rxBufReadPtr)];
+        rxBufReadPtr++;
 
         if(read == 0 && isspace((int)str[read]) != 0)
         {
             /* Skip leading whitespace */
             continue;
         }
-        else if(str[read] == '\r' || str[read] == '\n')
+        else if(str[read] == '\n')
         {
             /* Reached end of line */
             read++;
@@ -175,6 +153,8 @@ char * uart3_gets(char * str, size_t maxlen)
 
         read++;
     }
+
+    xSemaphoreGive(mutex);
 
     /* Null terminate the string */
     str[read] = '\0';

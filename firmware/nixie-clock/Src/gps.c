@@ -34,7 +34,7 @@ SOFTWARE.
 
 #include "debug.h"
 #include "rtc.h"
-#include "uart3.h"
+#include "uart.h"
 
 
 /* Private definitions ********************************************************/
@@ -219,7 +219,7 @@ static void gpsTask(void * argument)
     for(;;)
     {
         /* Read a sentence from the GPS module */
-        if(uart3_gets(sentence, sizeof(sentence)) == NULL)
+        if(uart_gets(sentence, sizeof(sentence)) == NULL)
         {
             return;
         }

@@ -33,7 +33,7 @@ SOFTWARE.
 #include "debug.h"
 #include "pwm.h"
 #include "spi.h"
-#include "uart3.h"
+#include "uart.h"
 #include "rtc.h"
 #include "timezone.h"
 #include "gps.h"
@@ -255,7 +255,7 @@ int main(void)
 
     pwm_init();
     spi_init();
-    uart3_init();
+    uart_init();
     rtc_init();
     nixieDriver_init();
     gps_init();

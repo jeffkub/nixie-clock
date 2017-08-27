@@ -30,7 +30,7 @@ SOFTWARE.
 
 
 /* Private definitions ********************************************************/
-#define TIMER       TIM2
+#define TIM_DEV     TIM2
 #define PRESCALER   0
 #define PERIOD      0xFFFF
 
@@ -51,37 +51,35 @@ void pwm_init(void)
     __HAL_RCC_TIM2_CLK_ENABLE();
 
     /* Timer configuration */
-    WRITE_REG(TIMER->CR1, TIM_CR1_ARPE);
+    WRITE_REG(TIM_DEV->CR1, TIM_CR1_ARPE);
 
-    /* Timer prescaler */
-    WRITE_REG(TIMER->PSC, PRESCALER);
+    WRITE_REG(TIM_DEV->PSC, PRESCALER);
 
-    /* Timer period */
-    WRITE_REG(TIMER->ARR, PERIOD);
+    WRITE_REG(TIM_DEV->ARR, PERIOD);
 
-    /* Re-initialize counter and update registers */
-    WRITE_REG(TIMER->EGR, TIM_EGR_UG);
-
-    /* Output compare enable for all 4 channels */
-    WRITE_REG(TIMER->CCMR1,
+    WRITE_REG(TIM_DEV->CCMR1,
         (6 << TIM_CCMR1_OC2M_Pos) | TIM_CCMR1_OC2PE | (0 << TIM_CCMR1_CC2S_Pos) |
         (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_OC1PE | (0 << TIM_CCMR1_CC1S_Pos));
-    WRITE_REG(TIMER->CCMR2,
+
+    WRITE_REG(TIM_DEV->CCMR2,
         (6 << TIM_CCMR2_OC4M_Pos) | TIM_CCMR2_OC4PE | (0 << TIM_CCMR2_CC4S_Pos) |
         (6 << TIM_CCMR2_OC3M_Pos) | TIM_CCMR2_OC3PE | (0 << TIM_CCMR2_CC3S_Pos));
 
     /* Initialize OC values */
-    WRITE_REG(TIMER->CCR1, 0);
-    WRITE_REG(TIMER->CCR2, 0);
-    WRITE_REG(TIMER->CCR3, 0);
-    WRITE_REG(TIMER->CCR4, 0);
+    WRITE_REG(TIM_DEV->CCR1, 0);
+    WRITE_REG(TIM_DEV->CCR2, 0);
+    WRITE_REG(TIM_DEV->CCR3, 0);
+    WRITE_REG(TIM_DEV->CCR4, 0);
+
+    /* Re-initialize counter and update registers */
+    WRITE_REG(TIM_DEV->EGR, TIM_EGR_UG);
 
     /* Enable OC channels */
-    WRITE_REG(TIMER->CCER,
+    WRITE_REG(TIM_DEV->CCER,
         TIM_CCER_CC4E | TIM_CCER_CC3E | TIM_CCER_CC2E | TIM_CCER_CC1E);
 
     /* Enable the timer */
-    SET_BIT(TIMER->CR1, TIM_CR1_CEN);
+    SET_BIT(TIM_DEV->CR1, TIM_CR1_CEN);
 
     return;
 }
@@ -92,22 +90,22 @@ int pwm_set(unsigned channel, unsigned value)
     {
         case 1:
         {
-            TIMER->CCR1 = value;
+            WRITE_REG(TIM_DEV->CCR1, value);
             break;
         }
         case 2:
         {
-            TIMER->CCR2 = value;
+            WRITE_REG(TIM_DEV->CCR2, value);
             break;
         }
         case 3:
         {
-            TIMER->CCR3 = value;
+            WRITE_REG(TIM_DEV->CCR3, value);
             break;
         }
         case 4:
         {
-            TIMER->CCR4 = value;
+            WRITE_REG(TIM_DEV->CCR4, value);
             break;
         }
         default:

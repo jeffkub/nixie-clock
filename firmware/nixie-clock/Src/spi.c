@@ -33,7 +33,7 @@ SOFTWARE.
 
 
 /* Private definitions ********************************************************/
-#define SPIDEV SPI2
+#define SPI_DEV SPI2
 
 typedef struct spiTransfer
 {
@@ -66,9 +66,9 @@ void SPI2_IRQHandler(void)
     BaseType_t task_woken = pdFALSE;
     uint8_t read;
 
-    while(READ_BIT(SPIDEV->SR, SPI_SR_RXNE) && (xfer.rxOffset < xfer.len))
+    while(READ_BIT(SPI_DEV->SR, SPI_SR_RXNE) && (xfer.rxOffset < xfer.len))
     {
-        read = *(__IO uint8_t *)&SPIDEV->DR;
+        read = *(__IO uint8_t *)&SPI_DEV->DR;
 
         if(xfer.rxData)
         {
@@ -78,22 +78,22 @@ void SPI2_IRQHandler(void)
         xfer.rxOffset++;
     }
 
-    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
+    while(READ_BIT(SPI_DEV->SR, SPI_SR_TXE) && (xfer.txOffset < xfer.len))
     {
-        *(__IO uint8_t *)&SPIDEV->DR = xfer.txData[xfer.txOffset];
+        *(__IO uint8_t *)&SPI_DEV->DR = xfer.txData[xfer.txOffset];
         xfer.txOffset++;
     }
 
     if(xfer.txOffset >= xfer.len)
     {
         /* Transmit complete */
-        CLEAR_BIT(SPIDEV->CR2, SPI_CR2_TXEIE);
+        CLEAR_BIT(SPI_DEV->CR2, SPI_CR2_TXEIE);
     }
 
     if(xfer.rxOffset >= xfer.len)
     {
         /* Transfer complete */
-        CLEAR_BIT(SPIDEV->CR2, SPI_CR2_RXNEIE);
+        CLEAR_BIT(SPI_DEV->CR2, SPI_CR2_RXNEIE);
 
         xSemaphoreGiveFromISR(doneSem, &task_woken);
     }
@@ -105,7 +105,7 @@ void SPI2_IRQHandler(void)
 
 void spi_init(void)
 {
-    mutex = xSemaphoreCreateMutex();
+    mutex   = xSemaphoreCreateMutex();
     doneSem = xSemaphoreCreateBinary();
 
     /* Peripheral clock enable */
@@ -116,14 +116,14 @@ void spi_init(void)
     HAL_NVIC_EnableIRQ(SPI2_IRQn);
 
     /* SPI configuration */
-    WRITE_REG(SPIDEV->CR1,
+    WRITE_REG(SPI_DEV->CR1,
         SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_LSBFIRST | (7 << SPI_CR1_BR_Pos) |
         SPI_CR1_MSTR | SPI_CR1_CPOL | SPI_CR1_CPHA);
 
-    WRITE_REG(SPIDEV->CR2, SPI_CR2_FRXTH | (7 << SPI_CR2_DS_Pos));
+    WRITE_REG(SPI_DEV->CR2, SPI_CR2_FRXTH | (7 << SPI_CR2_DS_Pos));
 
     /* Enable SPI peripheral */
-    SET_BIT(SPIDEV->CR1, SPI_CR1_SPE);
+    SET_BIT(SPI_DEV->CR1, SPI_CR1_SPE);
 
     return;
 }
@@ -145,7 +145,7 @@ int spi_tx(const void * data, size_t len)
     xfer.rxOffset = 0;
 
     /* Enable interrupts */
-    SET_BIT(SPIDEV->CR2, SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
+    SET_BIT(SPI_DEV->CR2, SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
 
     /* Wait for transfer to complete */
     xSemaphoreTake(doneSem, portMAX_DELAY);
