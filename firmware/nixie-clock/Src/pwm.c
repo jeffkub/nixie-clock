@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "globals.h"
 #include "stm32f3xx_hal.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 
 /* Private definitions ********************************************************/
@@ -36,6 +38,7 @@ SOFTWARE.
 
 
 /* Private variables **********************************************************/
+static SemaphoreHandle_t timerSem;
 
 
 /* Private function prototypes ************************************************/
@@ -45,10 +48,36 @@ SOFTWARE.
 
 
 /* Public function definitions ************************************************/
+void TIM2_IRQHandler(void)
+{
+    BaseType_t taskWoken = pdFALSE;
+    uint32_t status;
+
+    status = READ_REG(TIM_DEV->SR) & READ_REG(TIM_DEV->DIER);
+
+    if(status & TIM_SR_UIF)
+    {
+        xSemaphoreGiveFromISR(timerSem, &taskWoken);
+    }
+
+    /* Acknowledge interrupts */
+    WRITE_REG(TIM_DEV->SR, ~status);
+
+    portYIELD_FROM_ISR(taskWoken);
+
+    return;
+}
+
 void pwm_init(void)
 {
+    timerSem = xSemaphoreCreateBinary();
+
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();
+
+    /* Peripheral interrupt init */
+    HAL_NVIC_SetPriority(TIM2_IRQn, TIM2_IRQ_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
 
     /* Timer configuration */
     WRITE_REG(TIM_DEV->CR1, TIM_CR1_ARPE);
@@ -78,8 +107,18 @@ void pwm_init(void)
     WRITE_REG(TIM_DEV->CCER,
         TIM_CCER_CC4E | TIM_CCER_CC3E | TIM_CCER_CC2E | TIM_CCER_CC1E);
 
+    /* Enable update interrupt */
+    SET_BIT(TIM_DEV->DIER, TIM_DIER_UIE);
+
     /* Enable the timer */
     SET_BIT(TIM_DEV->CR1, TIM_CR1_CEN);
+
+    return;
+}
+
+void pwm_wait(void)
+{
+    xSemaphoreTake(timerSem, portMAX_DELAY);
 
     return;
 }

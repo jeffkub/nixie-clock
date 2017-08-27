@@ -34,6 +34,8 @@ SOFTWARE.
 /* Public function prototypes *************************************************/
 void pwm_init(void);
 
+void pwm_wait(void);
+
 int pwm_set(unsigned channel, unsigned value);
 
 

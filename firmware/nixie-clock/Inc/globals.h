@@ -99,6 +99,7 @@ SOFTWARE.
 #define SPI2_IRQ_PRIORITY                8
 #define USART3_IRQ_PRIORITY              8
 #define USB_LP_CAN_RX0_IRQ_PRIORITY      8
+#define TIM2_IRQ_PRIORITY               10
 #define RTC_WKUP_IRQ_PRIORITY           10
 #define SYSTICK_IRQ_PRIORITY            15
 
