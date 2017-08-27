@@ -120,7 +120,7 @@ void spi_init(void)
         SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_LSBFIRST | (7 << SPI_CR1_BR_Pos) |
         SPI_CR1_MSTR | SPI_CR1_CPOL | SPI_CR1_CPHA);
 
-    WRITE_REG(SPIDEV->CR2, SPI_CR2_FRXTH | (8 << SPI_CR2_DS_Pos));
+    WRITE_REG(SPIDEV->CR2, SPI_CR2_FRXTH | (7 << SPI_CR2_DS_Pos));
 
     /* Enable SPI peripheral */
     SET_BIT(SPIDEV->CR1, SPI_CR1_SPE);
