@@ -35,13 +35,23 @@ SOFTWARE.
 /* Private definitions ********************************************************/
 #define SPIDEV SPI2
 
+typedef struct spiTransfer
+{
+    size_t len;
+
+    char * txData;
+    size_t txOffset;
+
+    char * rxData;
+    size_t rxOffset;
+} spiTransfer_t;
+
+
 /* Private variables **********************************************************/
 static SemaphoreHandle_t mutex;
 static SemaphoreHandle_t doneSem;
 
-static char * txData;
-static size_t txOffset;
-static size_t count;
+static spiTransfer_t xfer;
 
 
 /* Private function prototypes ************************************************/
@@ -54,27 +64,37 @@ static size_t count;
 void SPI2_IRQHandler(void)
 {
     BaseType_t task_woken = pdFALSE;
-    uint32_t status;
-    uint32_t read;
+    char read;
 
-    status = READ_REG(SPIDEV->SR);
-
-    if(status & SPI_SR_RXNE)
+    while(READ_BIT(SPIDEV->SR, SPI_SR_RXNE))
     {
-        /* Dummy read */
         read = SPIDEV->DR;
 
-        if(txOffset < count)
+        if(xfer.rxData)
         {
-            /* Transfer next byte */
-            SPIDEV->DR = txData[txOffset];
-            txOffset++;
+            xfer.rxData[xfer.rxOffset] = read;
         }
-        else
+
+        xfer.rxOffset++;
+
+        if(xfer.rxOffset >= xfer.len)
         {
             /* Transfer complete */
             CLEAR_BIT(SPIDEV->CR2, SPI_CR2_RXNEIE);
+
             xSemaphoreGiveFromISR(doneSem, &task_woken);
+        }
+    }
+
+    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE))
+    {
+        SPIDEV->DR = xfer.txData[xfer.txOffset];
+        xfer.txOffset++;
+
+        if(xfer.txOffset >= xfer.len)
+        {
+            /* Transmit complete */
+            CLEAR_BIT(SPIDEV->CR2, SPI_CR2_TXEIE);
         }
     }
 
@@ -97,8 +117,8 @@ void spi_init(void)
 
     /* SPI configuration */
     WRITE_REG(SPIDEV->CR1,
-    	SPI_CR1_LSBFIRST | (7 << SPI_CR1_BR_Pos) | SPI_CR1_MSTR |
-    	SPI_CR1_CPOL | SPI_CR1_CPHA);
+        SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_LSBFIRST | (7 << SPI_CR1_BR_Pos) |
+        SPI_CR1_MSTR | SPI_CR1_CPOL | SPI_CR1_CPHA);
 
     WRITE_REG(SPIDEV->CR2, SPI_CR2_FRXTH | (8 << SPI_CR2_DS_Pos));
 
@@ -117,15 +137,24 @@ int spi_tx(const void * data, size_t len)
 
     xSemaphoreTake(mutex, portMAX_DELAY);
 
-    txData = (char *)data;
-    txOffset = 0;
-    count = len;
+    /* Prepare SPI transfer */
+    xfer.len      = len;
+    xfer.txData   = (char *)data;
+    xfer.txOffset = 0;
+    xfer.rxData   = NULL;
+    xfer.rxOffset = 0;
 
-    SPIDEV->DR = txData[txOffset];
-    txOffset++;
+    /* Fill TX FIFO */
+    while(READ_BIT(SPIDEV->SR, SPI_SR_TXE))
+    {
+        SPIDEV->DR = xfer.txData[xfer.txOffset];
+        xfer.txOffset++;
+    }
 
-    SET_BIT(SPIDEV->CR2, SPI_CR2_RXNEIE);
+    /* Enable interrupts */
+    SET_BIT(SPIDEV->CR2, SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
 
+    /* Wait for transfer to complete */
     xSemaphoreTake(doneSem, portMAX_DELAY);
 
     xSemaphoreGive(mutex);
