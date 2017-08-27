@@ -178,6 +178,14 @@ static void gpioInit(void)
     return;
 }
 
+void vApplicationIdleHook(void)
+{
+    /* Put CPU to sleep until next interrupt */
+    __asm__("WFI");
+
+    return;
+}
+
 static void mainTask(void * argument)
 {
     int       display[NUM_CNT];
@@ -221,7 +229,7 @@ static void ledTask(void * argument)
 
         if(increasing)
         {
-            intensity += 10;
+            intensity += 2;
 
             if(intensity >= 0xFFF)
             {
@@ -231,7 +239,7 @@ static void ledTask(void * argument)
         }
         else
         {
-            intensity -= 10;
+            intensity -= 2;
 
             if(intensity <= 0)
             {
