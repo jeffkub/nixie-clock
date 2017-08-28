@@ -34,7 +34,7 @@ SOFTWARE.
 
 /* Private definitions ********************************************************/
 #define TIM_DEV     TIM2
-#define PRESCALER   0
+#define PRESCALER   1
 #define PERIOD      0xFFFF
 
 

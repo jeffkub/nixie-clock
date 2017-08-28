@@ -104,6 +104,11 @@ static void systemClockConfig(void)
     /* SysTick_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(SysTick_IRQn, SYSTICK_IRQ_PRIORITY, 0);
 
+    debug_printf("SysClock: %u Hz\n", (unsigned)HAL_RCC_GetSysClockFreq());
+    debug_printf("HCLK    : %u Hz\n", (unsigned)HAL_RCC_GetHCLKFreq());
+    debug_printf("PCLK1   : %u Hz\n", (unsigned)HAL_RCC_GetPCLK1Freq());
+    debug_printf("PCLK2   : %u Hz\n", (unsigned)HAL_RCC_GetPCLK2Freq());
+
     return;
 }
 
@@ -229,7 +234,7 @@ static void ledTask(void * argument)
 
         if(increasing)
         {
-            intensity += 2;
+            intensity += 4;
 
             if(intensity >= 0xFFF)
             {
@@ -239,7 +244,7 @@ static void ledTask(void * argument)
         }
         else
         {
-            intensity -= 2;
+            intensity -= 4;
 
             if(intensity <= 0)
             {
