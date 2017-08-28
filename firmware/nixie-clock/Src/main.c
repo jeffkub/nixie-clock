@@ -38,6 +38,7 @@ SOFTWARE.
 #include "timezone.h"
 #include "gps.h"
 #include "nixieDriver.h"
+#include "color.h"
 
 
 /* Private variables **********************************************************/
@@ -46,6 +47,9 @@ static const timeZoneRule_t timezoneDST =
 
 static const timeZoneRule_t timezoneSTD =
     { "EST", First,  Sun, Nov, 2, -5 * 60 };
+
+static TaskHandle_t mainTaskHandle;
+static TaskHandle_t ledTaskHandle;
 
 
 /* Private function prototypes ************************************************/
@@ -228,6 +232,8 @@ static void ledTask(void * argument)
     int  intensity = 0;
     bool increasing = true;
 
+    portTASK_USES_FLOATING_POINT();
+
     while(true)
     {
         pwm_wait();
@@ -263,8 +269,6 @@ static void ledTask(void * argument)
 /* Public function definitions ************************************************/
 int main(void)
 {
-    BaseType_t status;
-
 #if DEBUG
     initialise_monitor_handles();
 #endif /* DEBUG */
@@ -291,23 +295,23 @@ int main(void)
     pwm_set(3, 0x1FF);
     pwm_set(4, 0x1FF);
 
-    status = xTaskCreate(
+    xTaskCreate(
         mainTask,
         "main",
         128,
         NULL,
         MAIN_TASK_PRIORITY,
-        NULL);
-    debug_assert(status);
+        &mainTaskHandle);
+    debug_assert(mainTaskHandle);
 
-    status = xTaskCreate(
+    xTaskCreate(
         ledTask,
         "led",
         128,
         NULL,
         LED_TASK_PRIORITY,
-        NULL);
-    debug_assert(status);
+        &ledTaskHandle);
+    debug_assert(ledTaskHandle);
 
     /* Start scheduler */
     vTaskStartScheduler();

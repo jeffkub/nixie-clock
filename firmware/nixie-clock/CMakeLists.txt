@@ -45,6 +45,7 @@ INCLUDE_DIRECTORIES(
 )
 
 SET(PROJECT_SOURCES
+    Src/color.c
     Src/gps.c
     Src/main.c
     Src/nixieDriver.c

@@ -68,6 +68,7 @@ typedef struct
 
 /* Private variables **********************************************************/
 static QueueHandle_t timestampQueue;
+static TaskHandle_t gpsTaskHandle;
 
 static int errorSum = 0;
 static int errorCount = 0;
@@ -265,19 +266,17 @@ void EXTI15_10_IRQHandler(void)
 
 void gps_init(void)
 {
-    BaseType_t status;
-
     timestampQueue = xQueueCreate(1, sizeof(timestamp_t));
     debug_assert(timestampQueue);
 
-    status = xTaskCreate(
+    xTaskCreate(
         gpsTask,
         "gps",
         512,
         NULL,
         GPS_TASK_PRIORITY,
-        NULL);
-    debug_assert(status);
+        &gpsTaskHandle);
+    debug_assert(gpsTaskHandle);
 
     /* PPS pin interrupt init */
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, EXTI15_10_IRQ_PRIORITY, 0);
