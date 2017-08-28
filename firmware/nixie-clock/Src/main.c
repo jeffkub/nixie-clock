@@ -229,39 +229,24 @@ static void mainTask(void * argument)
 
 static void ledTask(void * argument)
 {
-    int  intensity = 0;
-    bool increasing = true;
-
-    portTASK_USES_FLOATING_POINT();
+    hsv_t hsv = {0.0f, 1.0f, 0.08f};
+    rgb_t rgb;
 
     while(true)
     {
         pwm_wait();
 
-        if(increasing)
+        hsv.hue += 0.1f;
+        if(hsv.hue >= 360.0f)
         {
-            intensity += 4;
-
-            if(intensity >= 0xFFF)
-            {
-                intensity = 0xFFF;
-                increasing = false;
-            }
-        }
-        else
-        {
-            intensity -= 4;
-
-            if(intensity <= 0)
-            {
-                intensity = 0;
-                increasing = true;
-            }
+            hsv.hue -= 360.0f;
         }
 
-        pwm_set(2, intensity);
-        pwm_set(3, intensity);
-        pwm_set(4, intensity);
+        color_hsvToRgb(&hsv, &rgb);
+
+        pwm_set(2, (uint32_t)(rgb.red * 65535.0f));
+        pwm_set(3, (uint32_t)(rgb.grn * 65535.0f));
+        pwm_set(4, (uint32_t)(rgb.blu * 65535.0f));
     }
 }
 

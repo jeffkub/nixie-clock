@@ -25,6 +25,8 @@ SOFTWARE.
 /* Includes *******************************************************************/
 #include "color.h"
 
+#include <math.h>
+
 #include "globals.h"
 
 
@@ -43,6 +45,60 @@ SOFTWARE.
 /* Public function definitions ************************************************/
 void color_hsvToRgb(const hsv_t * hsv, rgb_t * rgb)
 {
+    float chrom;
+    float huep;
+    float x;
+    float m;
+
+    chrom = hsv->val * hsv->sat;
+
+    huep = hsv->hue / 60.0f;
+
+    x = chrom * (1.0f - fabsf(fmodf(huep, 2.0f) - 1.0f));
+
+    if(0.0f <= huep && huep < 1.0f)
+    {
+        rgb->red = chrom;
+        rgb->grn = x;
+        rgb->blu = 0.0f;
+    }
+    else if(1.0f <= huep && huep < 2.0f)
+    {
+        rgb->red = x;
+        rgb->grn = chrom;
+        rgb->blu = 0.0f;
+    }
+    else if(2.0f <= huep && huep < 3.0f)
+    {
+        rgb->red = 0.0f;
+        rgb->grn = chrom;
+        rgb->blu = x;
+    }
+    else if(3.0f <= huep && huep < 4.0f)
+    {
+        rgb->red = 0.0f;
+        rgb->grn = x;
+        rgb->blu = chrom;
+    }
+    else if(4.0f <= huep && huep < 5.0f)
+    {
+        rgb->red = x;
+        rgb->grn = 0.0f;
+        rgb->blu = chrom;
+    }
+    else if(5.0f <= huep && huep < 6.0f)
+    {
+        rgb->red = chrom;
+        rgb->grn = 0.0f;
+        rgb->blu = x;
+    }
+
+    m = hsv->val - chrom;
+
+    rgb->red += m;
+    rgb->grn += m;
+    rgb->blu += m;
+
     return;
 }
 
