@@ -33,11 +33,11 @@ SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DRELEASE")
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-wchar-size-warning --specs=nano.specs --specs=rdimon.specs -lrdimon")
 
-ADD_SUBDIRECTORY(Middlewares/Third_Party/FreeRTOS)
-ADD_SUBDIRECTORY(Middlewares/ST/STM32_USB_Device_Library)
+ADD_SUBDIRECTORY(lib/FreeRTOS)
+ADD_SUBDIRECTORY(lib/STM32_USB_Device_Library)
 
 INCLUDE_DIRECTORIES(
-    Inc
+    inc
     ${CMSIS_INCLUDE_DIRS}
     ${STM32HAL_INCLUDE_DIR}
     ${FREERTOS_INCLUDE_DIRS}
@@ -45,22 +45,22 @@ INCLUDE_DIRECTORIES(
 )
 
 SET(PROJECT_SOURCES
-    Src/color.c
-    Src/gps.c
-    Src/main.c
-    Src/nixieDriver.c
-    Src/pwm.c
-    Src/rtc.c
-    Src/spi.c
-    Src/stm32f3xx_hal_msp.c
-    Src/stm32f3xx_it.c
-    Src/timezone.c
-    Src/uart.c
-#    Src/usb_device.c
-#    Src/usbd_cdc_if.c
-#    Src/usbd_conf.c
-#    Src/usbd_desc.c
-#    Src/newlib.c
+    src/color.c
+    src/gps.c
+    src/main.c
+    src/nixieDriver.c
+    src/pwm.c
+    src/rtc.c
+    src/spi.c
+    src/stm32f3xx_hal_msp.c
+    src/stm32f3xx_it.c
+    src/timezone.c
+    src/uart.c
+#    src/usb_device.c
+#    src/usbd_cdc_if.c
+#    src/usbd_conf.c
+#    src/usbd_desc.c
+#    src/newlib.c
 )
 
 SET(STM32_LINKER_SCRIPT STM32F302C8Tx_FLASH.ld)
