@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    usbd_req.h
+  * @file    usbd_dfu_media_template.h
   * @author  MCD Application Team
   * @version V2.4.2
   * @date    11-December-2015
-  * @brief   Header file for the usbd_req.c file
+  * @brief   header file for the usbd_dfu_media_template.c file
   ******************************************************************************
   * @attention
   *
@@ -26,27 +26,26 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_REQUEST_H
-#define __USB_REQUEST_H
+#ifndef __USBD_DFU_MEDIA_TEMPLATE_H
+#define __USBD_DFU_MEDIA_TEMPLATE_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include  "usbd_def.h"
-
+#include "usbd_dfu.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
   */
   
-/** @defgroup USBD_REQ
-  * @brief header file for the usbd_req.c file
+/** @defgroup USBD_MEDIA
+  * @brief header file for the usbd_dfu_media_template.c file
   * @{
   */ 
 
-/** @defgroup USBD_REQ_Exported_Defines
+/** @defgroup USBD_MEDIA_Exported_Defines
   * @{
   */ 
 /**
@@ -54,43 +53,38 @@
   */ 
 
 
-/** @defgroup USBD_REQ_Exported_Types
+/** @defgroup USBD_MEDIA_Exported_Types
   * @{
   */
+
+
 /**
   * @}
   */ 
 
 
 
-/** @defgroup USBD_REQ_Exported_Macros
+/** @defgroup USBD_MEDIA_Exported_Macros
   * @{
   */ 
+
 /**
   * @}
   */ 
 
-/** @defgroup USBD_REQ_Exported_Variables
+/** @defgroup USBD_MEDIA_Exported_Variables
   * @{
   */ 
+extern USBD_DFU_MediaTypeDef  USBD_DFU_MEDIA_Template_fops;
 /**
   * @}
   */ 
 
-/** @defgroup USBD_REQ_Exported_FunctionsPrototype
+/** @defgroup USBD_MEDIA_Exported_FunctionsPrototype
   * @{
   */ 
 
-USBD_StatusTypeDef  USBD_StdDevReq (USBD_HandleTypeDef  *pdev, USBD_SetupReqTypedef  *req);
-USBD_StatusTypeDef  USBD_StdItfReq (USBD_HandleTypeDef  *pdev, USBD_SetupReqTypedef  *req);
-USBD_StatusTypeDef  USBD_StdEPReq  (USBD_HandleTypeDef  *pdev, USBD_SetupReqTypedef  *req);
 
-
-void USBD_CtlError  (USBD_HandleTypeDef  *pdev, USBD_SetupReqTypedef *req);
-
-void USBD_ParseSetupRequest (USBD_SetupReqTypedef *req, uint8_t *pdata);
-
-void USBD_GetString         (uint8_t *desc, uint8_t *unicode, uint16_t *len);
 /**
   * @}
   */ 
@@ -99,7 +93,7 @@ void USBD_GetString         (uint8_t *desc, uint8_t *unicode, uint16_t *len);
 }
 #endif
 
-#endif /* __USB_REQUEST_H */
+#endif /* __USBD_DFU_MEDIA_TEMPLATE_H */
 
 /**
   * @}
@@ -108,6 +102,4 @@ void USBD_GetString         (uint8_t *desc, uint8_t *unicode, uint16_t *len);
 /**
 * @}
 */ 
-
-
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
