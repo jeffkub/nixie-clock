@@ -12,7 +12,7 @@ SET(FREERTOS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/queue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/tasks.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/timers.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/MemMang/heap_4.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/MemMang/heap_3.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F/port.c
     PARENT_SCOPE
 )
