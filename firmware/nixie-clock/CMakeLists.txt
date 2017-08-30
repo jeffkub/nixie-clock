@@ -26,7 +26,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 ENABLE_LANGUAGE(ASM)
 
 FIND_PACKAGE(CMSIS REQUIRED)
-FIND_PACKAGE(STM32HAL COMPONENTS gpio dma REQUIRED)
+FIND_PACKAGE(STM32HAL COMPONENTS gpio pcd REQUIRED)
 
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DRELEASE")
@@ -56,10 +56,10 @@ SET(PROJECT_SOURCES
     src/stm32f3xx_it.c
     src/timezone.c
     src/uart.c
-#    src/usb_device.c
-#    src/usbd_cdc_if.c
-#    src/usbd_conf.c
-#    src/usbd_desc.c
+    src/usb_device.c
+    src/usbd_cdc_if.c
+    src/usbd_conf.c
+    src/usbd_desc.c
 #    src/newlib.c
 )
 

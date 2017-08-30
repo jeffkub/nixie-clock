@@ -160,7 +160,7 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f3xx.s).                    */
 /******************************************************************************/
-#if 0
+
 /**
 * @brief This function handles CAN RX0 and USB low priority interrupts.
 */
@@ -174,7 +174,6 @@ void USB_LP_CAN_RX0_IRQHandler(void)
 
   /* USER CODE END USB_LP_CAN_RX0_IRQn 1 */
 }
-#endif
 
 /* USER CODE BEGIN 1 */
 

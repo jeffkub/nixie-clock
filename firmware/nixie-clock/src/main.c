@@ -203,8 +203,6 @@ static void mainTask(void * argument)
     time_t    localTime;
     struct tm localDateTime = {0};
 
-    //MX_USB_DEVICE_Init();
-
     timezone_set(&timezoneDST, &timezoneSTD);
 
     while(true)
@@ -279,6 +277,8 @@ int main(void)
     nixieDriver_init();
     gps_init();
 
+    MX_USB_DEVICE_Init();
+
     xTaskCreate(
         mainTask,
         "main",
@@ -302,6 +302,13 @@ int main(void)
 
     /* We should never get here as control is now taken by the scheduler */
     return -1;
+}
+
+void Error_Handler(void)
+{
+    debug_breakpoint();
+
+    return;
 }
 
 #ifdef USE_FULL_ASSERT
