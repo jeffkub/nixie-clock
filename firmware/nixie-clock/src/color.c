@@ -102,7 +102,11 @@ void color_hsvToRgb(const hsv_t * hsv, rgb_t * rgb)
     return;
 }
 
-void color_gamma(rgb_t * rgb, float gamma)
+void color_ledAdjust(rgb_t * rgb)
 {
+    rgb->red = rgb->red * rgb->red;
+    rgb->grn = rgb->grn * rgb->grn;
+    rgb->blu = rgb->blu * rgb->blu;
+
     return;
 }

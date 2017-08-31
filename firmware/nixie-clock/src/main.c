@@ -229,7 +229,7 @@ static void mainTask(void * argument)
 
 static void ledTask(void * argument)
 {
-    hsv_t hsv = {0.0f, 1.0f, 0.08f};
+    hsv_t hsv = {0.0f, 1.0f, 0.2f};
     rgb_t rgb;
 
     while(true)
@@ -243,10 +243,11 @@ static void ledTask(void * argument)
         }
 
         color_hsvToRgb(&hsv, &rgb);
+        color_ledAdjust(&rgb);
 
-        pwm_set(2, (uint32_t)(rgb.red * 65535.0f));
-        pwm_set(3, (uint32_t)(rgb.grn * 65535.0f));
-        pwm_set(4, (uint32_t)(rgb.blu * 65535.0f));
+        pwm_set(2, (uint32_t)(rgb.red * 65536.0f));
+        pwm_set(3, (uint32_t)(rgb.grn * 65536.0f));
+        pwm_set(4, (uint32_t)(rgb.blu * 65536.0f));
     }
 }
 

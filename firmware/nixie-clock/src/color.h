@@ -46,7 +46,7 @@ typedef struct
 
 /* Public function prototypes *************************************************/
 void color_hsvToRgb(const hsv_t * hsv, rgb_t * rgb);
-void color_gamma(rgb_t * rgb, float gamma);
+void color_ledAdjust(rgb_t * rgb);
 
 
 #endif /* __COLOR_H */
