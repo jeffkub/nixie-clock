@@ -125,28 +125,41 @@ void pwm_wait(void)
     return;
 }
 
-int pwm_set(unsigned channel, unsigned value)
+int pwm_set(unsigned channel, float value)
 {
+    uint32_t ccr;
+
+    if(value < 0.0f)
+    {
+        value = 0.0f;
+    }
+    else if(value > 1.0f)
+    {
+        value = 1.0f;
+    }
+
+    ccr = (uint32_t)(value * (float)(PERIOD+1));
+
     switch(channel)
     {
         case 1:
         {
-            WRITE_REG(TIM_DEV->CCR1, value);
+            WRITE_REG(TIM_DEV->CCR1, ccr);
             break;
         }
         case 2:
         {
-            WRITE_REG(TIM_DEV->CCR2, value);
+            WRITE_REG(TIM_DEV->CCR2, ccr);
             break;
         }
         case 3:
         {
-            WRITE_REG(TIM_DEV->CCR3, value);
+            WRITE_REG(TIM_DEV->CCR3, ccr);
             break;
         }
         case 4:
         {
-            WRITE_REG(TIM_DEV->CCR4, value);
+            WRITE_REG(TIM_DEV->CCR4, ccr);
             break;
         }
         default:

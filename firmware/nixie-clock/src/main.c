@@ -232,6 +232,8 @@ static void ledTask(void * argument)
     hsv_t hsv = {0.0f, 1.0f, 0.2f};
     rgb_t rgb;
 
+    portTASK_USES_FLOATING_POINT();
+
     while(true)
     {
         pwm_wait();
@@ -245,9 +247,9 @@ static void ledTask(void * argument)
         color_hsvToRgb(&hsv, &rgb);
         color_ledAdjust(&rgb);
 
-        pwm_set(2, (uint32_t)(rgb.red * 65536.0f));
-        pwm_set(3, (uint32_t)(rgb.grn * 65536.0f));
-        pwm_set(4, (uint32_t)(rgb.blu * 65536.0f));
+        pwm_set(2, rgb.red);
+        pwm_set(3, rgb.grn);
+        pwm_set(4, rgb.blu);
     }
 }
 
@@ -276,10 +278,6 @@ int main(void)
     rtc_init();
     nixieDriver_init();
     gps_init();
-
-    pwm_set(2, 0x1FF);
-    pwm_set(3, 0x1FF);
-    pwm_set(4, 0x1FF);
 
     xTaskCreate(
         mainTask,

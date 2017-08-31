@@ -36,7 +36,7 @@ void pwm_init(void);
 
 void pwm_wait(void);
 
-int pwm_set(unsigned channel, unsigned value);
+int pwm_set(unsigned channel, float value);
 
 
 #endif /* __PWM_H */
