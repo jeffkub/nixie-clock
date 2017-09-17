@@ -1,15 +1,14 @@
 # nixie-clock
 
-An open source nixie clock synchronized to GPS time.
+An open source nixie clock with GPS time synchronization.
 
 ![alt text](/pictures/3d_render.png?raw=true)
 
 ## Build Instructions
 
-The code was built on Ubuntu 16.04.  You will need to install the [STM32Cube F3 library V1.9.0](http://www.st.com/content/st_com/en/products/embedded-software/mcus-embedded-software/stm32-embedded-software/stm32cube-embedded-software/stm32cubef3.html) to the `/opt/` directory.  You will need to install the following apt packages.
+The code was built on Ubuntu 16.04.  The [STM32Cube F3 library V1.9.0](http://www.st.com/content/st_com/en/products/embedded-software/mcus-embedded-software/stm32-embedded-software/stm32cube-embedded-software/stm32cubef3.html) will need to be installed to the `/opt/` directory.  The following apt packages are required.
 
-```bash
-build-essential
+```
 cmake
 gcc-arm-none-eabi
 gdb-arm-none-eabi
