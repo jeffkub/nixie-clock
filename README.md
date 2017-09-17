@@ -2,6 +2,14 @@
 
 An open source nixie clock with GPS time synchronization.
 
+## Enclosure
+
+The enclosure design has been moved to Fusion 360.  The files in the hardware folder are out of date and will be removed at some point.
+
+1. [Enclosure](http://a360.co/2x962o5)
+2. [PCB](http://a360.co/2x9v2f3)
+3. [Assembly](http://a360.co/2y7SgBr)
+
 ![alt text](/pictures/3d_render.png?raw=true)
 
 ## Build Instructions
