@@ -31,7 +31,7 @@ cmake -DSTM32_CHIP=STM32F302C8 -DCMAKE_TOOLCHAIN_FILE=../../cmake/gcc_stm32.cmak
 make
 ```
 
-To build for debugging
+To build for debugging.
 
 ```bash
 mkdir firmware/nixie-clock/debug
